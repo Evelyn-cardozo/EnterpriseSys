@@ -1,0 +1,689 @@
+css
+/* =========================================
+   CONFIGURACIÓN GENERAL
+========================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f4f7fb;
+    color: #1f2937;
+}
+
+a {
+    text-decoration: none;
+}
+
+
+
+/* =========================================
+   BARRA LATERAL
+========================================= */
+
+.sidebar {
+    position: fixed;
+
+    left: 0;
+    top: 0;
+
+    width: 240px;
+    height: 100vh;
+
+    background-color: #102a43;
+
+    color: white;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 25px 15px;
+
+    z-index: 10;
+}
+
+
+
+/* Logo */
+
+.logo {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    font-size: 20px;
+    font-weight: bold;
+
+    padding: 5px 10px 35px;
+}
+
+.logo-icon {
+    width: 38px;
+    height: 38px;
+
+    border-radius: 10px;
+
+    background-color: #2563eb;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 21px;
+}
+
+
+
+/* Menú */
+
+.menu {
+    display: flex;
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    color: #dbeafe;
+
+    padding: 13px 14px;
+
+    border-radius: 9px;
+
+    font-size: 15px;
+
+    transition: 0.2s;
+}
+
+.menu-item:hover {
+    background-color: #1e4163;
+}
+
+.menu-item.activo {
+    background-color: #2563eb;
+
+    color: white;
+}
+
+.icono {
+    width: 23px;
+
+    text-align: center;
+
+    font-size: 19px;
+}
+
+
+
+/* Cerrar sesión abajo */
+
+.menu-inferior {
+    margin-top: auto;
+}
+
+.menu-item.cerrar {
+    color: #dbeafe;
+}
+
+
+
+/* =========================================
+   CONTENIDO PRINCIPAL
+========================================= */
+
+.contenido {
+    margin-left: 240px;
+
+    min-height: 100vh;
+}
+
+
+
+/* =========================================
+   BARRA SUPERIOR
+========================================= */
+
+.barra-superior {
+    height: 72px;
+
+    background-color: white;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 0 35px;
+}
+
+
+
+/* Menú superior */
+
+.menu-superior {
+    display: flex;
+
+    gap: 30px;
+}
+
+.menu-superior a {
+    color: #64748b;
+
+    font-size: 14px;
+
+    padding: 26px 0;
+}
+
+.menu-superior a:hover {
+    color: #2563eb;
+}
+
+.menu-superior .activo-superior {
+    color: #2563eb;
+
+    font-weight: 600;
+
+    border-bottom: 2px solid #2563eb;
+}
+
+
+
+/* Usuario */
+
+.usuario-superior {
+    display: flex;
+
+    align-items: center;
+
+    gap: 20px;
+}
+
+.notificaciones {
+    border: none;
+
+    background: transparent;
+
+    font-size: 20px;
+
+    cursor: pointer;
+}
+
+.perfil {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+.avatar {
+    width: 38px;
+    height: 38px;
+
+    border-radius: 50%;
+
+    background-color: #2563eb;
+
+    color: white;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    font-weight: bold;
+}
+
+.datos-usuario {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.datos-usuario strong {
+    font-size: 14px;
+}
+
+.datos-usuario span {
+    font-size: 12px;
+
+    color: #64748b;
+}
+
+
+
+/* =========================================
+   DASHBOARD
+========================================= */
+
+.dashboard {
+    padding: 30px 35px;
+}
+
+
+
+/* =========================================
+   BIENVENIDA
+========================================= */
+
+.bienvenida {
+    background: linear-gradient(
+        135deg,
+        #102a43,
+        #1d4ed8
+    );
+
+    color: white;
+
+    border-radius: 14px;
+
+    padding: 30px 35px;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 25px;
+}
+
+.texto-pequeno {
+    font-size: 12px;
+
+    letter-spacing: 1px;
+
+    opacity: 0.8;
+
+    margin-bottom: 8px;
+}
+
+.bienvenida h1 {
+    font-size: 25px;
+
+    margin-bottom: 8px;
+}
+
+.descripcion {
+    font-size: 14px;
+
+    opacity: 0.85;
+}
+
+.fecha {
+    text-align: right;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+.fecha span {
+    font-size: 12px;
+
+    opacity: 0.8;
+}
+
+.fecha strong {
+    font-size: 18px;
+}
+
+
+
+/* =========================================
+   TARJETAS
+========================================= */
+
+.tarjetas {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 20px;
+
+    margin-bottom: 25px;
+}
+
+.tarjeta {
+    background-color: white;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 12px;
+
+    padding: 22px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.03);
+}
+
+.tarjeta-icono {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 12px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background-color: #dbeafe;
+
+    color: #2563eb;
+
+    font-size: 23px;
+}
+
+.tarjeta-info {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.numero {
+    font-size: 27px;
+
+    font-weight: bold;
+
+    color: #102a43;
+}
+
+.titulo {
+    font-size: 13px;
+
+    color: #64748b;
+}
+
+.tarjeta-info a {
+    font-size: 12px;
+
+    color: #2563eb;
+
+    margin-top: 4px;
+}
+
+
+
+/* =========================================
+   PARTE INFERIOR
+========================================= */
+
+.parte-inferior {
+    display: grid;
+
+    grid-template-columns: 1.4fr 1fr;
+
+    gap: 20px;
+}
+
+.actividad,
+.alertas {
+    background-color: white;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 12px;
+
+    padding: 22px;
+}
+
+
+
+/* Títulos */
+
+.titulo-seccion {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 18px;
+}
+
+.titulo-seccion h2 {
+    font-size: 17px;
+
+    color: #102a43;
+}
+
+.titulo-seccion a {
+    font-size: 12px;
+
+    color: #2563eb;
+}
+
+.cantidad-alertas {
+    background-color: #fee2e2;
+
+    color: #dc2626;
+
+    padding: 4px 9px;
+
+    border-radius: 20px;
+
+    font-size: 11px;
+
+    font-weight: bold;
+}
+
+
+
+/* =========================================
+   ACTIVIDAD
+========================================= */
+
+.actividad-lista {
+    display: flex;
+
+    flex-direction: column;
+}
+
+.actividad-item {
+    display: flex;
+
+    gap: 13px;
+
+    padding: 13px 0;
+
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.actividad-item:last-child {
+    border-bottom: none;
+}
+
+.actividad-icono {
+    width: 34px;
+    height: 34px;
+
+    border-radius: 50%;
+
+    background-color: #dbeafe;
+
+    color: #2563eb;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    font-weight: bold;
+}
+
+.actividad-item div:last-child {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+.actividad-item strong {
+    font-size: 13px;
+}
+
+.actividad-item span {
+    font-size: 11px;
+
+    color: #64748b;
+}
+
+
+
+/* =========================================
+   ALERTAS
+========================================= */
+
+.alerta-item {
+    display: flex;
+
+    align-items: center;
+
+    gap: 13px;
+
+    padding: 15px;
+
+    margin-bottom: 10px;
+
+    background-color: #fff7ed;
+
+    border-radius: 9px;
+
+    border-left: 4px solid #f59e0b;
+}
+
+.alerta-icono {
+    font-size: 20px;
+
+    color: #f59e0b;
+}
+
+.alerta-item div:last-child {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+.alerta-item strong {
+    font-size: 13px;
+}
+
+.alerta-item span {
+    font-size: 11px;
+
+    color: #64748b;
+}
+
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1000px) {
+
+    .sidebar {
+        width: 210px;
+    }
+
+    .contenido {
+        margin-left: 210px;
+    }
+
+    .tarjetas {
+        grid-template-columns: 1fr;
+    }
+
+    .parte-inferior {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+
+@media (max-width: 700px) {
+
+    .sidebar {
+        width: 70px;
+
+        padding: 20px 10px;
+    }
+
+    .logo span:last-child,
+    .menu-item span:last-child {
+        display: none;
+    }
+
+    .logo {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .menu-item {
+        justify-content: center;
+    }
+
+    .contenido {
+        margin-left: 70px;
+    }
+
+    .barra-superior {
+        padding: 0 15px;
+    }
+
+    .menu-superior {
+        gap: 12px;
+    }
+
+    .menu-superior a {
+        font-size: 12px;
+    }
+
+    .dashboard {
+        padding: 20px 15px;
+    }
+
+    .bienvenida {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 20px;
+    }
+
+    .fecha {
+        text-align: left;
+    }
+
+}
+

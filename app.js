@@ -1,4 +1,5 @@
 const express = require('express');
+
 const cors = require('cors');
 const path = require('path');
 
@@ -9,6 +10,8 @@ const pool = require('./Database/conexion.js');
 const usuarioRoutes = require('./routers/usuarioRouters.js');
 
 const app = express();
+// Permite acceder a archivos CSS, imágenes y JavaScript
+app.use(express.static(path.join(__dirname, 'public')));
 
 
 // ========================================
@@ -39,7 +42,13 @@ app.get('/login', (req, res) => {
 
 });
 
+app.get('/inicio', (req, res) => {
 
+    res.sendFile(
+        path.join(__dirname, 'views', 'inicio.html')
+    );
+
+});
 // ========================================
 // RUTA DE PRUEBA
 // ========================================
@@ -91,13 +100,19 @@ app.use('/usuarios', usuarioRoutes);
 // ========================================
 // INICIAR SERVIDOR
 // ========================================
-
 const puerto = 3000;
 
-app.listen(puerto, () => {
+console.log('1. Preparando servidor...');
 
-    console.log(
-        `Servidor ejecutándose en http://localhost:${puerto}`
-    );
+const servidor = app.listen(puerto, () => {
+
+    console.log('2. SERVIDOR INICIADO');
+    console.log(`3. http://localhost:${puerto}`);
+
+});
+
+servidor.on('error', (error) => {
+
+    console.error('4. ERROR DEL SERVIDOR:', error);
 
 });

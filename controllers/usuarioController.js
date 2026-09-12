@@ -26,9 +26,8 @@ const login = async (req, res) => {
         }
 
 
-        // Buscamos el usuario en PostgreSQL
-        const usuario = await usuarioModel.buscarPorUsername(username);
-
+     // Buscamos el usuario en PostgreSQL
+const usuario = await usuarioModel.buscarPorUsername(username);
 
         // Si no encontramos el usuario
         if (!usuario) {
@@ -41,7 +40,7 @@ const login = async (req, res) => {
 
 
         // Verificamos si el usuario está activo
-        if (usuario.estado !== 'activo') {
+        if (usuario.estado !== 'Activo') {
 
             return res.status(403).json({
                 mensaje: 'El usuario está inactivo'

@@ -1,0 +1,463 @@
+html
+<!DOCTYPE html>
+ <!--lang="es" indica que el contenido de la página está en español.-->
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EnterpriseSys - Inicio</title>
+
+    // Archivo CSS de la pantalla principal 
+    <link rel="stylesheet" href="/css/inicio.css">
+
+</head>
+
+<body>
+
+    <!-- Barrera lateral
+
+    <aside class="sidebar">
+
+      Logo / nombre del sistema -->
+        <div class="logo">
+
+            <span class="logo-icon">E</span>
+
+            <span>EnterpriseSys</span>
+
+        </div>
+
+
+        <!-- Menú lateral -->
+        <nav class="menu">
+
+            <a href="#" class="menu-item activo">
+                <span class="icono">⌂</span>
+                <span>Inicio</span>
+            </a>
+
+            <a href="#" class="menu-item">
+                <span class="icono">♙</span>
+                <span>Clientes</span>
+            </a>
+
+            <a href="#" class="menu-item">
+                <span class="icono">▣</span>
+                <span>Obras</span>
+            </a>
+
+            <a href="#" class="menu-item">
+                <span class="icono">▤</span>
+                <span>Inventario</span>
+            </a>
+
+            <a href="#" class="menu-item">
+                <span class="icono">▧</span>
+                <span>Facturación</span>
+            </a>
+
+        </nav>
+
+
+        <!-- Cerrar sesión -->
+        <div class="menu-inferior">
+
+            <a href="#" class="menu-item cerrar">
+
+                <span class="icono">⇥</span>
+
+                <span>Cerrar sesión</span>
+
+            </a>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- CONTENIDO PRINCIPAL-->
+
+    <main class="contenido">
+
+
+        <!-- =====================================
+             BARRA SUPERIOR
+        ====================================== -->
+
+        <header class="barra-superior">
+
+            <div class="menu-superior">
+
+                <a href="#" class="activo-superior">
+                    Inicio
+                </a>
+
+                <a href="#">
+                    Reportes
+                </a>
+
+                <a href="#">
+                    Configuración
+                </a>
+
+            </div>
+
+
+            <!-- Parte derecha -->
+            <div class="usuario-superior">
+
+                <button class="notificaciones">
+                    🔔
+                </button>
+
+                <div class="perfil">
+
+                    <div class="avatar">
+                        E
+                    </div>
+
+                    <div class="datos-usuario">
+
+                        <strong>Evelyn</strong>
+
+                        <span>Gerente</span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =====================================
+             CONTENIDO DEL DASHBOARD
+        ====================================== -->
+
+        <section class="dashboard">
+
+
+            <!-- =====================================
+                 BANNER DE BIENVENIDA
+            ====================================== -->
+
+            <div class="bienvenida">
+
+                <div>
+
+                    <p class="texto-pequeno">
+                        RESUMEN GENERAL DEL SISTEMA
+                    </p>
+
+                    <h1>
+                        ¡BIENVENIDO DE NUEVO, EVELYN!
+                    </h1>
+
+                    <p class="descripcion">
+                        Aquí puedes consultar el estado general
+                        de EnterpriseSys.
+                    </p>
+
+                </div>
+
+
+                <div class="fecha">
+
+                    <span>Fecha</span>
+
+                    <strong id="fechaActual">
+                        --/--/----
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =====================================
+                 TARJETAS DE RESUMEN
+            ====================================== -->
+
+            <div class="tarjetas">
+
+
+                <!-- Clientes -->
+                <div class="tarjeta">
+
+                    <div class="tarjeta-icono clientes">
+                        ♙
+                    </div>
+
+                    <div class="tarjeta-info">
+
+                        <span class="numero">
+                            10
+                        </span>
+
+                        <span class="titulo">
+                            Nuevos clientes
+                        </span>
+
+                        <a href="#">
+                            Ver clientes →
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Obras -->
+                <div class="tarjeta">
+
+                    <div class="tarjeta-icono obras">
+                        ▣
+                    </div>
+
+                    <div class="tarjeta-info">
+
+                        <span class="numero">
+                            5
+                        </span>
+
+                        <span class="titulo">
+                            Obras en proceso
+                        </span>
+
+                        <a href="#">
+                            Ver obras →
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Inventario -->
+                <div class="tarjeta">
+
+                    <div class="tarjeta-icono inventario">
+                        ▤
+                    </div>
+
+                    <div class="tarjeta-info">
+
+                        <span class="numero">
+                            2
+                        </span>
+
+                        <span class="titulo">
+                            Materiales bajo stock
+                        </span>
+
+                        <a href="#">
+                            Ver inventario →
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =====================================
+                 PARTE INFERIOR
+            ====================================== -->
+
+            <div class="parte-inferior">
+
+
+                <!-- Actividad reciente -->
+                <section class="actividad">
+
+                    <div class="titulo-seccion">
+
+                        <h2>
+                            Actividad reciente
+                        </h2>
+
+                        <a href="#">
+                            Ver todo
+                        </a>
+
+                    </div>
+
+
+                    <div class="actividad-lista">
+
+
+                        <div class="actividad-item">
+
+                            <div class="actividad-icono">
+                                +
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    Nuevo cliente registrado
+                                </strong>
+
+                                <span>
+                                    Cliente agregado al sistema
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="actividad-item">
+
+                            <div class="actividad-icono">
+                                ▣
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    Nueva obra registrada
+                                </strong>
+
+                                <span>
+                                    Se registró una nueva obra
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="actividad-item">
+
+                            <div class="actividad-icono">
+                                ▤
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    Solicitud de material
+                                </strong>
+
+                                <span>
+                                    Se realizó una solicitud de inventario
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- Alertas -->
+                <section class="alertas">
+
+                    <div class="titulo-seccion">
+
+                        <h2>
+                            Alertas de inventario
+                        </h2>
+
+                        <span class="cantidad-alertas">
+                            2
+                        </span>
+
+                    </div>
+
+
+                    <div class="alerta-item">
+
+                        <div class="alerta-icono">
+                            ⚠
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Cable de aluminio 16mm
+                            </strong>
+
+                            <span>
+                                5 metros restantes
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="alerta-item">
+
+                        <div class="alerta-icono">
+                            ⚠
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Aislador triple campana
+                            </strong>
+
+                            <span>
+                                4 unidades restantes
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- =====================================
+         JAVASCRIPT
+    ====================================== -->
+
+    <script>
+
+        // Obtener la fecha actual
+        const fecha = new Date();
+
+        // Formato de fecha
+        const fechaFormateada = fecha.toLocaleDateString('es-PY', {
+
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+
+        });
+
+        // Mostrar fecha en la pantalla
+        document.getElementById('fechaActual').textContent =
+            fechaFormateada;
+
+    </script>
+
+</body>
+
+</html>
+

@@ -1,128 +1,89 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>EnterpriseSys - Iniciar sesión</title>
-</head>
+  </head>
 
-<body>
-
+  <body>
     <h1>EnterpriseSys</h1>
     <h2>Iniciar sesión</h2>
 
     <form id="formularioLogin">
+      <div>
+        <label for="username">Usuario:</label>
+        <input type="text" id="username" name="username" required />
+      </div>
 
-        <div>
-            <label for="username">Usuario:</label>
-            <input
-                type="text"
-                id="username"
-                name="username"
-                required
-            >
-        </div>
+      <br />
 
-        <br>
+      <div>
+        <label for="password">Contraseña:</label>
+        <input type="password" id="password" name="password" required />
+      </div>
 
-        <div>
-            <label for="password">Contraseña:</label>
-            <input
-                type="password"
-                id="password"
-                name="password"
-                required
-            >
-        </div>
+      <br />
 
-        <br>
-
-        <button type="submit">
-            Iniciar sesión
-        </button>
-
+      <button type="submit">Iniciar sesión</button>
     </form>
 
     <p id="mensaje"></p>
 
-
     <script>
+      // Obtenemos el formulario
+      const formulario = document.getElementById("formularioLogin");
 
-        // Obtenemos el formulario
-        const formulario = document.getElementById('formularioLogin');
+      // Obtenemos el lugar donde mostraremos el mensaje
+      const mensaje = document.getElementById("mensaje");
 
-        // Obtenemos el lugar donde mostraremos el mensaje
-        const mensaje = document.getElementById('mensaje');
+      // Cuando el usuario presione "Iniciar sesión"
+      formulario.addEventListener("submit", async (event) => {
+        // Evitamos que el navegador recargue la página
+        event.preventDefault();
 
+        // Obtenemos los datos escritos
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
 
-        // Cuando el usuario presione "Iniciar sesión"
-        formulario.addEventListener('submit', async (event) => {
+        try {
+          // Enviamos los datos al servidor
+          const respuesta = await fetch(
+            "http://localhost:3000/usuarios/login",
+            {
+              method: "POST",
 
-            // Evitamos que el navegador recargue la página
-            event.preventDefault();
+              headers: {
+                "Content-Type": "application/json",
+              },
 
+              body: JSON.stringify({
+                username: username,
+                password: password,
+              }),
+            },
+          );
 
-            // Obtenemos los datos escritos
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+          // Convertimos la respuesta del servidor a JSON
+          const datos = await respuesta.json();
 
+          // Mostramos el mensaje recibido
+          mensaje.textContent = datos.mensaje;
 
-            try {
+          // Si el login fue correcto
+          if (respuesta.ok) {
+            console.log("Usuario:", datos.usuario);
 
-                // Enviamos los datos al servidor
-                const respuesta = await fetch(
-                    'http://localhost:3000/usuarios/login',
-                    {
-                        method: 'POST',
+            console.log("Rol:", datos.usuario.nombre_rol);
+            window.location.href = "/inicio";
+          }
+        } catch (error) {
+          console.error(error);
 
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-
-                        body: JSON.stringify({
-                            username: username,
-                            password: password
-                        })
-                    }
-                );
-
-
-                // Convertimos la respuesta del servidor a JSON
-                const datos = await respuesta.json();
-
-
-                // Mostramos el mensaje recibido
-                mensaje.textContent = datos.mensaje;
-
-
-                // Si el login fue correcto
-                if (respuesta.ok) {
-
-                    console.log('Usuario:', datos.usuario);
-
-                    console.log(
-                        'Rol:',
-                        datos.usuario.nombre_rol
-                    );
-
-                }
-
-
-            } catch (error) {
-
-                console.error(error);
-
-                mensaje.textContent =
-                    'No se pudo conectar con el servidor.';
-
-            }
-
-        });
-
+          mensaje.textContent = "No se pudo conectar con el servidor.";
+        }
+      });
     </script>
-
-</body>
-
+  </body>
 </html>
