@@ -1,0 +1,360 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f3f5f9;
+  color: #243047;
+}
+
+/* ENCABEZADO */
+.encabezado {
+  background: #17365d;
+  color: white;
+  padding: 22px 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.encabezado h1 {
+  margin: 0 0 6px;
+  font-size: 25px;
+}
+
+.encabezado p {
+  margin: 0;
+  color: #d7e2f0;
+  font-size: 14px;
+}
+
+.btn-volver {
+  color: white;
+  text-decoration: none;
+  border: 1px solid #a9bdd7;
+  padding: 10px 15px;
+  border-radius: 6px;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.btn-volver:hover {
+  background: #245b9e;
+  border-color: white;
+}
+
+/* CONTENEDOR PRINCIPAL */
+.contenedor {
+  width: 90%;
+  max-width: 1400px;
+  margin: 30px auto;
+}
+
+/* TÍTULO DE SECCIÓN */
+.titulo-seccion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 22px;
+}
+
+.titulo-seccion h2 {
+  margin: 0 0 8px;
+}
+
+.titulo-seccion p {
+  margin: 0;
+  color: #68758a;
+}
+
+/* TARJETAS */
+.tarjeta {
+  background: white;
+  padding: 22px;
+  margin-bottom: 22px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px #172b4d0d;
+}
+
+.tarjeta h3 {
+  margin-top: 0;
+}
+
+/* CAMPOS DE ENTRADA */
+input {
+  width: 100%;
+  padding: 11px 12px;
+  margin-top: 7px;
+  border: 1px solid #cbd3df;
+  border-radius: 6px;
+  font-size: 14px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: #315d91;
+  box-shadow: 0 0 0 3px #9dbce640;
+}
+
+.input-error {
+  border-color: #b42318 !important;
+}
+
+/* FORMULARIO */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+}
+
+.campo-completo {
+  grid-column: 1 / -1;
+}
+
+label {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.nota {
+  color: #68758a;
+  font-size: 13px;
+  margin-top: 18px;
+}
+
+/* MENSAJES DE VALIDACIÓN */
+.mensaje-error {
+  display: block;
+  color: #b42318;
+  font-size: 12px;
+  margin-top: 5px;
+  min-height: 0;
+}
+
+/* BOTONES DEL FORMULARIO */
+.acciones-formulario {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+/* ESTILO GENERAL DE LOS BOTONES */
+button {
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.2s ease,
+    box-shadow 0.25s ease;
+}
+
+/* BOTÓN PRINCIPAL: NUEVO CLIENTE Y GUARDAR */
+.btn-principal {
+  background: #245b9e;
+  color: white;
+  border-color: #245b9e;
+}
+
+.btn-principal:hover {
+  background: #17365d;
+  border-color: #17365d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px #17365d30;
+}
+
+/* BOTÓN CANCELAR */
+.btn-secundario {
+  background: #e8edf4;
+  color: #243047;
+  border-color: #cbd3df;
+}
+
+.btn-secundario:hover {
+  background: #d3dce9;
+  border-color: #a9b8cc;
+  transform: translateY(-2px);
+}
+
+/* BOTÓN MODIFICAR */
+.btn-modificar {
+  background: #e0ecff;
+  color: #1d4f91;
+  border: 1px solid #b8d2f5;
+  white-space: nowrap;
+  margin-right: 6px;
+}
+
+.btn-modificar:hover {
+  background: #245b9e;
+  color: white;
+  border-color: #245b9e;
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px #245b9e30;
+}
+
+/* BOTÓN DESACTIVAR */
+.btn-desactivar {
+  background: #fde8e8;
+  color: #b42318;
+  border: 1px solid #f5b7b1;
+  white-space: nowrap;
+}
+
+.btn-desactivar:hover {
+  background: #b42318;
+  color: white;
+  border-color: #b42318;
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px #b4231830;
+}
+
+/* BOTÓN ACTIVAR */
+.btn-activar {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #a7f3d0;
+  white-space: nowrap;
+}
+
+.btn-activar:hover {
+  background: #15803d;
+  color: white;
+  border-color: #15803d;
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px #15803d30;
+}
+
+/* EFECTO AL HACER CLIC */
+button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* INDICADOR DE FOCO PARA TECLADO */
+button:focus-visible,
+.btn-volver:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+/* OCULTAR ELEMENTOS */
+.oculto {
+  display: none;
+}
+
+/* ENCABEZADO DE LA TABLA */
+.tabla-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.tabla-encabezado span {
+  color: #68758a;
+  font-size: 14px;
+}
+
+/* TABLA DE CLIENTES */
+.tabla-contenedor {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+  font-size: 14px;
+}
+
+th,
+td {
+  padding: 13px 12px;
+  border-bottom: 1px solid #e5e9f0;
+  text-align: left;
+}
+
+th {
+  background: #f7f9fc;
+  color: #42516a;
+}
+
+/* BOTONES DENTRO DE LA TABLA */
+td button {
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+/* MENSAJES GENERALES */
+#mensaje {
+  font-size: 14px;
+  color: #245b9e;
+}
+
+/* ADAPTACIÓN A CELULARES */
+@media (max-width: 700px) {
+  .encabezado,
+  .titulo-seccion {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .campo-completo {
+    grid-column: auto;
+  }
+
+  .contenedor {
+    width: 94%;
+  }
+
+  .tarjeta {
+    padding: 16px;
+  }
+
+  .acciones-formulario {
+    flex-wrap: wrap;
+  }
+}
+
+/* RESPETAR LA PREFERENCIA DE MENOS ANIMACIONES */
+@media (prefers-reduced-motion: reduce) {
+  button,
+  input,
+  .btn-volver {
+    transition: none;
+  }
+}
+
+/* Datos de clientes inactivos en gris */
+#tablaClientes tr.cliente-inactivo td:not(:last-child) {
+  color: #9ca3af !important;
+}
+
+/* Mantener los colores originales de los botones */
+#tablaClientes tr.cliente-inactivo td:last-child button {
+  opacity: 1;
+}

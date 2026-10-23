@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clientes | EnterpriseSys</title>
+    <link rel="stylesheet" href="/css/cliente.css" />
+  </head>
+  <body>
+    <header class="encabezado">
+      <div>
+        <h1>EnterpriseSys</h1>
+        <p>Sistema de gestión para empresa eléctrica</p>
+      </div>
+      <a href="/inicio" class="btn-volver">Volver al inicio</a>
+    </header>
+
+    <main class="contenedor">
+      <section class="titulo-seccion">
+        <div>
+          <h2>Gestión de clientes</h2>
+          <p>Registrá y consultá los clientes de la empresa.</p>
+        </div>
+        <button id="btnNuevoCliente" class="btn-principal">
+          + Nuevo cliente
+        </button>
+      </section>
+
+      <section class="tarjeta">
+        <label for="buscarCliente">Buscar cliente</label>
+        <input
+          type="search"
+          id="buscarCliente"
+          placeholder="Buscar por nombre, RUC/CI o teléfono..."
+        />
+      </section>
+
+      <section id="formularioContenedor" class="tarjeta oculto">
+        <h3 id="tituloFormulario">Registrar cliente</h3>
+
+        <form id="formCliente">
+          <div class="form-grid">
+            <div class="campo">
+              <label for="nombre">Nombre o razón social *</label>
+              <input
+                type="text"
+                id="nombre"
+                name="nombre_razon_social"
+                required
+              />
+              <small id="errorNombre" class="mensaje-error"></small>
+            </div>
+
+            <div class="campo">
+              <label for="ruc_ci">RUC o CI *</label>
+              <input type="text" id="ruc_ci" name="ruc_ci" required />
+              <small id="errorRucCi" class="mensaje-error"></small>
+            </div>
+
+            <div class="campo">
+              <label for="telefono">Teléfono</label>
+              <input type="text" id="telefono" name="telefono" />
+            </div>
+
+            <div class="campo">
+              <label for="email">Correo electrónico</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="ejemplo@correo.com"
+                title="Ingresá un correo electrónico válido"
+              />
+              <small id="errorEmail" class="mensaje-error"></small>
+            </div>
+
+            <div class="campo campo-completo">
+              <label for="direccion">Dirección</label>
+              <input type="text" id="direccion" name="direccion" />
+            </div>
+          </div>
+
+          <p class="nota">Los campos marcados con * son obligatorios.</p>
+
+          <div class="acciones-formulario">
+            <button type="button" id="btnCancelar" class="btn-secundario">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-principal">Guardar cliente</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="tarjeta">
+        <div class="tabla-encabezado">
+          <h3>Lista de clientes</h3>
+          <span id="totalClientes">0 clientes</span>
+        </div>
+
+        <p id="mensaje" role="status" aria-live="polite"></p>
+
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre / Razón social</th>
+                <th>RUC / CI</th>
+                <th>Teléfono</th>
+                <th>Dirección</th>
+                <th>Email</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaClientes">
+              <tr>
+                <td colspan="8">Cargando clientes...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="/js/cliente.js"></script>
+  </body>
+</html>
