@@ -11,6 +11,7 @@ const pool = require("./Database/conexion.js");
 // Rutas de usuarios
 const usuarioRouters = require("./routers/usuarioRouters.js");
 const clienteRouters = require("./routers/clienteRouters.js");
+const obraRouters = require("./routers/obraRouters.js");
 const app = express();
 // Permite acceder a archivos CSS, imágenes y JavaScript
 app.use(express.static(path.join(__dirname, "public")));
@@ -97,7 +98,11 @@ app.use("/clientes", clienteRouters);
 app.get("/prueba-clientes", (req, res) => {
   res.send("La ruta de prueba funciona");
 });
-
+// RUTAS DE OBRAS
+app.use("/obras", obraRouters);
+app.get("/obras-pagina", (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "obra.html"));
+});
 // ========================================
 // INICIAR SERVIDOR
 // ========================================

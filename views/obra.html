@@ -1,0 +1,176 @@
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Obras | EnterpriseSys</title>
+    <link rel="stylesheet" href="/css/obra.css" />
+  </head>
+
+  <body>
+    <header class="encabezado">
+      <div>
+        <h1>EnterpriseSys</h1>
+        <p>Sistema de gestión para empresa eléctrica</p>
+      </div>
+      <a href="/inicio" class="btn-volver">Volver al inicio</a>
+    </header>
+
+    <main class="contenedor">
+      <section class="titulo-seccion">
+        <div>
+          <h2>Gestión de obras</h2>
+          <p>Registrá, consultá y administrá las obras de la empresa.</p>
+        </div>
+
+        <button id="btnNuevaObra" class="btn-principal" type="button">
+          + Nueva obra
+        </button>
+      </section>
+
+      <!-- Búsqueda -->
+      <section class="tarjeta">
+        <label for="buscarObra">Buscar obra</label>
+        <input
+          type="search"
+          id="buscarObra"
+          placeholder="Buscar por nombre, cliente, responsable o estado..."
+        />
+      </section>
+
+      <!-- Formulario -->
+      <section id="formularioContenedor" class="tarjeta oculto">
+        <h3 id="tituloFormulario">Registrar obra</h3>
+
+        <form id="formObra">
+          <div class="form-grid">
+            <div class="campo campo-completo">
+              <label for="id_cliente">Cliente *</label>
+              <select id="id_cliente" name="id_cliente" required>
+                <option value="">Seleccioná un cliente</option>
+              </select>
+              <small id="errorCliente" class="mensaje-error"></small>
+            </div>
+
+            <div class="campo">
+              <label for="nombre_obra">Nombre de la obra *</label>
+              <input
+                type="text"
+                id="nombre_obra"
+                name="nombre_obra"
+                maxlength="150"
+                required
+              />
+              <small id="errorNombreObra" class="mensaje-error"></small>
+            </div>
+
+            <div class="campo">
+              <label for="personal_responsable">Responsable *</label>
+              <input
+                type="text"
+                id="personal_responsable"
+                name="personal_responsable"
+                maxlength="150"
+                required
+              />
+              <small id="errorResponsable" class="mensaje-error"></small>
+            </div>
+
+            <div class="campo">
+              <label for="presupuesto_planificado">
+                Presupuesto planificado (Gs.) *
+              </label>
+              <input
+                type="number"
+                id="presupuesto_planificado"
+                name="presupuesto_planificado"
+                min="0"
+                step="1"
+                required
+              />
+              <small id="errorPresupuesto" class="mensaje-error"></small>
+            </div>
+
+            <div class="campo">
+              <label for="fecha_inicio">Fecha de inicio *</label>
+              <input
+                type="date"
+                id="fecha_inicio"
+                name="fecha_inicio"
+                required
+              />
+            </div>
+
+            <div class="campo">
+              <label for="fecha_fin_prevista">
+                Fecha de finalización prevista *
+              </label>
+              <input
+                type="date"
+                id="fecha_fin_prevista"
+                name="fecha_fin_prevista"
+                required
+              />
+              <small id="errorFechas" class="mensaje-error"></small>
+            </div>
+          </div>
+
+          <p class="nota">Los campos marcados con * son obligatorios.</p>
+
+          <div class="acciones-formulario">
+            <button
+              type="button"
+              id="btnCancelar"
+              class="btn-secundario"
+            >
+              Cancelar
+            </button>
+
+            <button type="submit" id="btnGuardarObra" class="btn-principal">
+              Guardar obra
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Tabla de obras -->
+      <section class="tarjeta">
+        <div class="tabla-encabezado">
+          <h3>Lista de obras</h3>
+          <span id="totalObras">0 obras</span>
+        </div>
+
+        <p id="mensaje" role="status" aria-live="polite"></p>
+
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre de la obra</th>
+                <th>Cliente</th>
+                <th>Responsable</th>
+                <th>Presupuesto (Gs.)</th>
+                <th>Costo acumulado (Gs.)</th>
+                <th>Avance</th>
+                <th>Fecha de inicio</th>
+                <th>Finalización prevista</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody id="tablaObras">
+              <tr>
+                <td colspan="11">Cargando obras...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="/js/obra.js"></script>
+  </body>
+</html>
