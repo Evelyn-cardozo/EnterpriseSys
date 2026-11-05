@@ -18,6 +18,7 @@
     </header>
 
     <main class="contenedor">
+      <!-- Título principal -->
       <section class="titulo-seccion">
         <div>
           <h2>Gestión de obras</h2>
@@ -29,17 +30,17 @@
         </button>
       </section>
 
-      <!-- Búsqueda -->
+      <!-- Búsqueda de obras -->
       <section class="tarjeta">
         <label for="buscarObra">Buscar obra</label>
         <input
           type="search"
           id="buscarObra"
-          placeholder="Buscar por nombre, cliente, responsable o estado..."
+          placeholder="Buscar por nombre, cliente, o estado..."
         />
       </section>
 
-      <!-- Formulario -->
+      <!-- Formulario para registrar o modificar obras -->
       <section id="formularioContenedor" class="tarjeta oculto">
         <h3 id="tituloFormulario">Registrar obra</h3>
 
@@ -64,19 +65,6 @@
               />
               <small id="errorNombreObra" class="mensaje-error"></small>
             </div>
-
-            <div class="campo">
-              <label for="personal_responsable">Responsable *</label>
-              <input
-                type="text"
-                id="personal_responsable"
-                name="personal_responsable"
-                maxlength="150"
-                required
-              />
-              <small id="errorResponsable" class="mensaje-error"></small>
-            </div>
-
             <div class="campo">
               <label for="presupuesto_planificado">
                 Presupuesto planificado (Gs.) *
@@ -127,14 +115,18 @@
               Cancelar
             </button>
 
-            <button type="submit" id="btnGuardarObra" class="btn-principal">
+            <button
+              type="submit"
+              id="btnGuardarObra"
+              class="btn-principal"
+            >
               Guardar obra
             </button>
           </div>
         </form>
       </section>
 
-      <!-- Tabla de obras -->
+      <!-- Lista de obras -->
       <section class="tarjeta">
         <div class="tabla-encabezado">
           <h3>Lista de obras</h3>
@@ -150,13 +142,13 @@
                 <th>ID</th>
                 <th>Nombre de la obra</th>
                 <th>Cliente</th>
-                <th>Responsable</th>
                 <th>Presupuesto (Gs.)</th>
                 <th>Costo acumulado (Gs.)</th>
                 <th>Avance</th>
                 <th>Fecha de inicio</th>
                 <th>Finalización prevista</th>
                 <th>Estado</th>
+                <th>Materiales</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -169,8 +161,294 @@
           </table>
         </div>
       </section>
-    </main>
 
+      <!-- Panel integrado de materiales -->
+      <section id="panelMateriales" class="tarjeta oculto">
+        <div class="tabla-encabezado">
+          <div>
+            <h3 id="tituloMateriales">Materiales de la obra</h3>
+            <p id="nombreObraMateriales"></p>
+          </div>
+
+          <button
+            type="button"
+            id="btnCerrarMateriales"
+            class="btn-secundario"
+          >
+            Volver a obras
+          </button>
+        </div>
+
+        <!-- Pestañas del panel -->
+        <div class="pestanas-materiales">
+          <button
+            type="button"
+            class="pestana-material activa"
+            data-pestana="solicitar"
+          >
+            Solicitar materiales
+          </button>
+
+          <button
+            type="button"
+            class="pestana-material"
+            data-pestana="solicitudes"
+          >
+            Solicitudes
+          </button>
+
+          <button
+            type="button"
+            class="pestana-material"
+            data-pestana="historial"
+          >
+            Historial de entregas
+          </button>
+        </div>
+
+        <!-- Pestaña: nueva solicitud -->
+        <div id="contenido-solicitar" class="contenido-pestana">
+          <h4>Nueva solicitud de materiales</h4>
+
+          <p>
+            Seleccioná materiales existentes en el inventario e indicá
+            las cantidades necesarias para esta obra.
+          </p>
+
+          <form id="formSolicitudMateriales">
+            <div class="form-grid">
+              <div class="campo">
+                <label for="materialSeleccionado">Material *</label>
+                <select id="materialSeleccionado" required>
+                  <option value="">Seleccioná un material</option>
+                </select>
+              </div>
+
+              <div class="campo">
+                <label for="cantidadMaterial">
+                  Cantidad solicitada *
+                </label>
+                <input
+                  type="number"
+                  id="cantidadMaterial"
+                  min="1"
+                  step="1"
+                  required
+                />
+              </div>
+            </div>
+
+            <button
+              type="button"
+              id="btnAgregarMaterial"
+              class="btn-secundario"
+            >
+              + Agregar a la lista
+            </button>
+
+            <div class="tabla-contenedor">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Material</th>
+                    <th>Stock disponible</th>
+                    <th>Cantidad solicitada</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+
+                <tbody id="tablaDetalleSolicitud">
+                  <tr>
+                    <td colspan="4">
+                      Todavía no agregaste materiales.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="campo">
+              <label for="observacionSolicitud">Observación</label>
+              <textarea
+                id="observacionSolicitud"
+                maxlength="255"
+                placeholder="Motivo o detalle de la solicitud..."
+              ></textarea>
+            </div>
+
+            <button
+              type="submit"
+              id="btnEnviarSolicitud"
+              class="btn-principal"
+            >
+              Enviar solicitud
+            </button>
+          </form>
+        </div>
+
+        <!-- Pestaña: solicitudes -->
+        <div
+          id="contenido-solicitudes"
+          class="contenido-pestana oculto"
+        >
+          <h4>Solicitudes de materiales</h4>
+
+          <div class="tabla-contenedor">
+            <table>
+              <thead>
+                <tr>
+                  <th>N.º</th>
+                  <th>Fecha</th>
+                  <th>Solicitante</th>
+                  <th>Estado</th>
+                  <th>Detalles</th>
+                </tr>
+              </thead>
+
+              <tbody id="tablaSolicitudes">
+                <tr>
+                  <td colspan="5">
+                    No se cargaron solicitudes todavía.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pestaña: historial de entregas -->
+        <div
+          id="contenido-historial"
+          class="contenido-pestana oculto"
+        >
+          <h4>Historial de entregas</h4>
+
+          <div class="tabla-contenedor">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Material</th>
+                  <th>Cantidad entregada</th>
+                  <th>Responsable</th>
+                </tr>
+              </thead>
+
+              <tbody id="tablaHistorialEntregas">
+                <tr>
+                  <td colspan="4">
+                    No se cargaron entregas todavía.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <p
+          id="mensajeMateriales"
+          role="status"
+          aria-live="polite"
+        ></p>
+      </section>
+      <!-- Panel de trabajadores de la obra -->
+<section id="panelPersonal" class="tarjeta oculto">
+
+  <div class="tabla-encabezado">
+    <div>
+      <h3>Personal de la obra</h3>
+      <p id="nombreObraPersonal"></p>
+    </div>
+
+    <button type="button" id="btnCerrarPersonal" class="btn-secundario">
+      Volver a obras
+    </button>
+  </div>
+
+  <!-- Formulario de trabajadores -->
+  <div class="subseccion">
+    <h4 id="tituloFormularioPersonal">Registrar trabajador</h4>
+
+    <form id="formPersonal">
+      <input type="hidden" id="id_personal">
+      <input type="hidden" id="id_obra_personal">
+
+      <div class="form-grid">
+        <div class="campo">
+          <label for="nombre_trabajador">Nombre completo *</label>
+          <input type="text" id="nombre_trabajador" maxlength="150" required>
+        </div>
+
+        <div class="campo">
+          <label for="cargo">Cargo *</label>
+          <input type="text" id="cargo" maxlength="100" required>
+        </div>
+
+        <div class="campo">
+          <label for="telefono">Teléfono *</label>
+          <input type="tel" id="telefono" maxlength="30" required>
+        </div>
+
+        <div class="campo">
+          <label for="gmail">Correo electrónico *</label>
+          <input type="email" id="gmail" maxlength="150" required>
+        </div>
+
+        <div class="campo campo-completo">
+          <label for="direccion">Dirección *</label>
+          <input type="text" id="direccion" maxlength="200" required>
+        </div>
+      </div>
+
+      <p class="nota">Los campos marcados con * son obligatorios.</p>
+
+      <div class="acciones-formulario">
+        <button type="button" id="btnCancelarPersonal" class="btn-secundario">
+          Cancelar
+        </button>
+
+        <button type="submit" id="btnGuardarPersonal" class="btn-principal">
+          Registrar trabajador
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lista de trabajadores -->
+  <div class="subseccion">
+    <div class="tabla-encabezado">
+      <h4>Trabajadores registrados</h4>
+      <span id="totalPersonal">0 trabajadores</span>
+    </div>
+
+    <div class="tabla-contenedor">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Cargo</th>
+            <th>Teléfono</th>
+            <th>Correo</th>
+            <th>Dirección</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody id="tablaPersonal">
+          <tr>
+            <td colspan="7">No hay trabajadores registrados.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p id="mensajePersonal" role="status" aria-live="polite"></p>
+</section>
+    </main>
+      <!-- Biblioteca de iconos -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="/js/obra.js"></script>
   </body>
 </html>

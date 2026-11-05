@@ -397,3 +397,55 @@ td button {
     transition: none;
   }
 }
+/* BOTONES DE ACCIONES CON ICONOS */
+.acciones {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.btn-icono {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #d5deea;
+  border-radius: 7px;
+  background: #edf2f7;
+  color: #17365d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icono:hover {
+  background: #d9e6f2;
+  color: #1769aa;
+  border-color: #a9bdd7;
+  transform: translateY(-2px);
+}
+
+.btn-icono svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2;
+}
+
+/* Alinear verticalmente el contenido de las tablas */
+.tabla-contenedor td {
+  vertical-align: middle;
+}
+
+/* Evitar que los botones se separen */
+.tabla-contenedor td:has(.acciones) {
+  white-space: nowrap;
+}
+
+/* Acciones de la tabla de trabajadores */
+#tablaTrabajadores .acciones {
+  justify-content: center;
+}

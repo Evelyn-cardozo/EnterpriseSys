@@ -2,15 +2,17 @@
 const obraModel = require("../models/obraModel");
 const clienteModel = require("../models/clienteModel");
 
+// ===============================
+// OBRAS
+// ===============================
+
 // Mostrar todas las obras
 const listarObras = async (req, res) => {
   try {
     const obras = await obraModel.listarObras();
-
     return res.status(200).json(obras);
   } catch (error) {
     console.error("Error al listar obras:", error);
-
     return res.status(500).json({
       mensaje: "Error al obtener las obras",
     });
@@ -23,7 +25,6 @@ const registrarObra = async (req, res) => {
     const {
       id_cliente,
       nombre_obra,
-      personal_responsable,
       presupuesto_planificado,
       fecha_inicio,
       fecha_fin_prevista,
@@ -32,7 +33,6 @@ const registrarObra = async (req, res) => {
     if (
       !id_cliente ||
       !nombre_obra?.trim() ||
-      !personal_responsable?.trim() ||
       presupuesto_planificado === undefined ||
       presupuesto_planificado === "" ||
       !fecha_inicio ||
@@ -43,9 +43,15 @@ const registrarObra = async (req, res) => {
       });
     }
 
-    const cliente = await clienteModel.listarClientes();
+    if (!Number.isInteger(Number(id_cliente)) || Number(id_cliente) <= 0) {
+      return res.status(400).json({
+        mensaje: "El cliente seleccionado no es válido",
+      });
+    }
 
-    const clienteValido = cliente.some(
+    const clientes = await clienteModel.listarClientes();
+
+    const clienteValido = clientes.some(
       (c) =>
         Number(c.id_cliente) === Number(id_cliente) &&
         String(c.estado).trim().toLowerCase() === "activo"
@@ -62,15 +68,6 @@ const registrarObra = async (req, res) => {
     if (!Number.isFinite(presupuesto) || presupuesto < 0) {
       return res.status(400).json({
         mensaje: "El presupuesto debe ser un número válido igual o mayor a cero",
-      });
-    }
-
-    if (
-      !Number.isInteger(Number(id_cliente)) ||
-      Number(id_cliente) <= 0
-    ) {
-      return res.status(400).json({
-        mensaje: "El cliente seleccionado no es válido",
       });
     }
 
@@ -106,7 +103,6 @@ const registrarObra = async (req, res) => {
     const obra = await obraModel.registrarObra({
       id_cliente: Number(id_cliente),
       nombre_obra: nombre_obra.trim(),
-      personal_responsable: personal_responsable.trim(),
       presupuesto_planificado: presupuesto,
       fecha_inicio,
       fecha_fin_prevista,
@@ -118,7 +114,6 @@ const registrarObra = async (req, res) => {
     });
   } catch (error) {
     console.error("Error al registrar obra:", error);
-
     return res.status(500).json({
       mensaje: "Error al registrar la obra",
     });
@@ -133,7 +128,6 @@ const modificarObra = async (req, res) => {
     const {
       id_cliente,
       nombre_obra,
-      personal_responsable,
       presupuesto_planificado,
       fecha_inicio,
       fecha_fin_prevista,
@@ -142,7 +136,6 @@ const modificarObra = async (req, res) => {
     if (
       !id_cliente ||
       !nombre_obra?.trim() ||
-      !personal_responsable?.trim() ||
       presupuesto_planificado === undefined ||
       presupuesto_planificado === "" ||
       !fecha_inicio ||
@@ -167,9 +160,9 @@ const modificarObra = async (req, res) => {
       });
     }
 
-    const cliente = await clienteModel.listarClientes();
+    const clientes = await clienteModel.listarClientes();
 
-    const clienteValido = cliente.some(
+    const clienteValido = clientes.some(
       (c) =>
         Number(c.id_cliente) === Number(id_cliente) &&
         String(c.estado).trim().toLowerCase() === "activo"
@@ -226,7 +219,6 @@ const modificarObra = async (req, res) => {
     const obra = await obraModel.modificarObra(Number(id), {
       id_cliente: Number(id_cliente),
       nombre_obra: nombre_obra.trim(),
-      personal_responsable: personal_responsable.trim(),
       presupuesto_planificado: presupuesto,
       fecha_inicio,
       fecha_fin_prevista,
@@ -238,7 +230,6 @@ const modificarObra = async (req, res) => {
     });
   } catch (error) {
     console.error("Error al modificar obra:", error);
-
     return res.status(500).json({
       mensaje: "Error al modificar la obra",
     });
@@ -286,16 +277,234 @@ const cambiarEstadoObra = async (req, res) => {
     });
   } catch (error) {
     console.error("Error al cambiar el estado de la obra:", error);
-
     return res.status(500).json({
       mensaje: "Error al cambiar el estado de la obra",
     });
   }
 };
 
+
+// ===============================
+// TRABAJADORES
+// ===============================
+
+// Listar todos los trabajadores
+const listarTrabajadores = async (req, res) => {
+  try {
+    const trabajadores = await obraModel.listarTodosLosTrabajadores();
+    return res.status(200).json(trabajadores);
+  } catch (error) {
+    console.error("Error al listar trabajadores:", error);
+    return res.status(500).json({
+      mensaje: "Error al obtener los trabajadores",
+    });
+  }
+};
+
+// Listar trabajadores de una obra
+const listarTrabajadoresPorObra = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
+      return res.status(400).json({
+        mensaje: "El identificador de la obra no es válido",
+      });
+    }
+
+    const obra = await obraModel.buscarObraPorId(Number(id));
+
+    if (!obra) {
+      return res.status(404).json({
+        mensaje: "Obra no encontrada",
+      });
+    }
+
+    const trabajadores = await obraModel.listarTrabajadoresPorObra(Number(id));
+    return res.status(200).json(trabajadores);
+  } catch (error) {
+    console.error("Error al listar trabajadores de la obra:", error);
+    return res.status(500).json({
+      mensaje: "Error al obtener los trabajadores de la obra",
+    });
+  }
+};
+
+// Registrar trabajador
+const registrarTrabajador = async (req, res) => {
+  try {
+    const {
+      id_obra,
+      nombre_trabajador,
+      cargo,
+      telefono,
+      gmail,
+      direccion,
+    } = req.body;
+
+    if (
+      !id_obra ||
+      !nombre_trabajador?.trim() ||
+      !cargo?.trim() ||
+      !telefono?.trim() ||
+      !gmail?.trim() ||
+      !direccion?.trim()
+    ) {
+      return res.status(400).json({
+        mensaje: "Todos los campos obligatorios deben completarse",
+      });
+    }
+
+    if (!Number.isInteger(Number(id_obra)) || Number(id_obra) <= 0) {
+      return res.status(400).json({
+        mensaje: "La obra seleccionada no es válida",
+      });
+    }
+
+    const obra = await obraModel.buscarObraPorId(Number(id_obra));
+
+    if (!obra) {
+      return res.status(404).json({
+        mensaje: "La obra seleccionada no existe",
+      });
+    }
+
+    const trabajador = await obraModel.registrarTrabajador({
+      id_obra: Number(id_obra),
+      nombre_trabajador: nombre_trabajador.trim(),
+      cargo: cargo.trim(),
+      telefono: telefono.trim(),
+      gmail: gmail.trim(),
+      direccion: direccion.trim(),
+    });
+
+    return res.status(201).json({
+      mensaje: "Trabajador registrado correctamente",
+      trabajador,
+    });
+  } catch (error) {
+    console.error("Error al registrar trabajador:", error);
+    return res.status(500).json({
+      mensaje: "Error al registrar el trabajador",
+    });
+  }
+};
+
+// Modificar trabajador
+const modificarTrabajador = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const {
+      id_obra,
+      nombre_trabajador,
+      cargo,
+      telefono,
+      gmail,
+      direccion,
+    } = req.body;
+
+    if (
+      !Number.isInteger(Number(id)) ||
+      Number(id) <= 0 ||
+      !Number.isInteger(Number(id_obra)) ||
+      Number(id_obra) <= 0
+    ) {
+      return res.status(400).json({
+        mensaje: "El identificador del trabajador o de la obra no es válido",
+      });
+    }
+
+    if (
+      !nombre_trabajador?.trim() ||
+      !cargo?.trim() ||
+      !telefono?.trim() ||
+      !gmail?.trim() ||
+      !direccion?.trim()
+    ) {
+      return res.status(400).json({
+        mensaje: "Todos los campos obligatorios deben completarse",
+      });
+    }
+
+    const trabajadorExistente = await obraModel.buscarTrabajadorPorId(Number(id));
+
+    if (!trabajadorExistente) {
+      return res.status(404).json({
+        mensaje: "Trabajador no encontrado",
+      });
+    }
+
+    const obra = await obraModel.buscarObraPorId(Number(id_obra));
+
+    if (!obra) {
+      return res.status(404).json({
+        mensaje: "La obra seleccionada no existe",
+      });
+    }
+
+    const trabajador = await obraModel.modificarTrabajador(Number(id), {
+      id_obra: Number(id_obra),
+      nombre_trabajador: nombre_trabajador.trim(),
+      cargo: cargo.trim(),
+      telefono: telefono.trim(),
+      gmail: gmail.trim(),
+      direccion: direccion.trim(),
+    });
+
+    return res.status(200).json({
+      mensaje: "Trabajador modificado correctamente",
+      trabajador,
+    });
+  } catch (error) {
+    console.error("Error al modificar trabajador:", error);
+    return res.status(500).json({
+      mensaje: "Error al modificar el trabajador",
+    });
+  }
+};
+
+// Eliminar trabajador
+const eliminarTrabajador = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
+      return res.status(400).json({
+        mensaje: "El identificador del trabajador no es válido",
+      });
+    }
+
+    const trabajador = await obraModel.eliminarTrabajador(Number(id));
+
+    if (!trabajador) {
+      return res.status(404).json({
+        mensaje: "Trabajador no encontrado",
+      });
+    }
+
+    return res.status(200).json({
+      mensaje: "Trabajador eliminado correctamente",
+      trabajador,
+    });
+  } catch (error) {
+    console.error("Error al eliminar trabajador:", error);
+    return res.status(500).json({
+      mensaje: "Error al eliminar el trabajador",
+    });
+  }
+};
+
+
 module.exports = {
   listarObras,
   registrarObra,
   modificarObra,
   cambiarEstadoObra,
+
+  listarTrabajadores,
+  listarTrabajadoresPorObra,
+  registrarTrabajador,
+  modificarTrabajador,
+  eliminarTrabajador,
 };

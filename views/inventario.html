@@ -1,0 +1,123 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>EnterpriseSys - Inventario</title>
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  >
+
+  <link rel="stylesheet" href="/css/inventario.css">
+</head>
+
+<body>
+
+  <header class="encabezado">
+    <a href="/inicio" class="volver">
+      <i class="fa-solid fa-arrow-left"></i>
+      Volver al inicio
+    </a>
+
+    <h1>
+      <i class="fa-solid fa-boxes-stacked"></i>
+      Gestión de Inventario
+    </h1>
+
+    <p>Administración de materiales y control de existencias</p>
+  </header>
+
+  <main class="contenedor">
+
+    <!-- RESUMEN DEL INVENTARIO -->
+    <section class="resumen">
+
+      <article class="tarjeta">
+        <i class="fa-solid fa-box"></i>
+
+        <div>
+          <span>Total de materiales</span>
+          <strong id="totalMateriales">0</strong>
+        </div>
+      </article>
+
+      <article class="tarjeta">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+
+        <div>
+          <span>Materiales con stock bajo</span>
+          <strong id="stockBajo">0</strong>
+        </div>
+      </article>
+
+    </section>
+
+
+    <!-- LISTADO DE MATERIALES -->
+    <section class="panel">
+
+      <div class="panel-encabezado">
+        <h2>Materiales registrados</h2>
+
+        <button type="button" id="btnNuevoMaterial">
+          <i class="fa-solid fa-plus"></i>
+          Nuevo material
+        </button>
+      </div>
+
+      <!-- BUSCADOR -->
+      <div class="filtros">
+        <input
+          type="search"
+          id="buscarMaterial"
+          placeholder="Buscar material..."
+          aria-label="Buscar material"
+        >
+      </div>
+
+      <!-- TABLA -->
+      <div class="tabla-contenedor">
+
+        <table aria-label="Listado de materiales del inventario">
+
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Material</th>
+              <th>Precio actual</th>
+              <th>Stock</th>
+              <th>Stock mínimo</th>
+              <th>Ubicación</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody id="tablaMateriales">
+            <tr>
+              <td colspan="7">Cargando materiales...</td>
+            </tr>
+          </tbody>
+
+        </table>
+
+      </div>
+
+      <!-- MENSAJES -->
+      <p
+        id="mensajeInventario"
+        role="status"
+        aria-live="polite"
+      ></p>
+
+    </section>
+
+  </main>
+
+  <script src="/js/inventario.js"></script>
+
+</body>
+</html>

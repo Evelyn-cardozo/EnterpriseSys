@@ -12,6 +12,7 @@ const pool = require("./Database/conexion.js");
 const usuarioRouters = require("./routers/usuarioRouters.js");
 const clienteRouters = require("./routers/clienteRouters.js");
 const obraRouters = require("./routers/obraRouters.js");
+const inventarioRouters = require("./routers/inventarioRouters.js");
 const app = express();
 // Permite acceder a archivos CSS, imágenes y JavaScript
 app.use(express.static(path.join(__dirname, "public")));
@@ -58,6 +59,12 @@ app.get("/inicio", (req, res) => {
 app.get("/clientes-pagina", (req, res) => {
   res.sendFile(path.join(__dirname, "views", "cliente.html"));
 });
+app.get("/obras-pagina", (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "obra.html"));
+});
+app.get("/inventario-pagina", (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "inventario.html"));
+});
 // ========================================
 // RUTA DE PRUEBA
 // ========================================
@@ -100,9 +107,11 @@ app.get("/prueba-clientes", (req, res) => {
 });
 // RUTAS DE OBRAS
 app.use("/obras", obraRouters);
-app.get("/obras-pagina", (req, res) => {
-  res.sendFile(path.join(__dirname, "views", "obra.html"));
-});
+
+// Página de gestión de inventario
+
+app.use("/materiales", inventarioRouters);
+
 // ========================================
 // INICIAR SERVIDOR
 // ========================================

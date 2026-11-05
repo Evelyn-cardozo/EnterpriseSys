@@ -1,6 +1,10 @@
 
 const pool = require("../Database/conexion");
 
+// ===============================
+// OBRAS
+// ===============================
+
 // Listar todas las obras con el nombre del cliente
 const listarObras = async () => {
   const resultado = await pool.query(`
@@ -9,7 +13,6 @@ const listarObras = async () => {
       o.id_cliente,
       c.nombre_razon_social AS nombre_cliente,
       o.nombre_obra,
-      o.personal_responsable,
       o.presupuesto_planificado,
       o.costo_real_acumulado,
       o.porcentaje_avance,
@@ -43,7 +46,6 @@ const registrarObra = async (obra) => {
   const {
     id_cliente,
     nombre_obra,
-    personal_responsable,
     presupuesto_planificado,
     fecha_inicio,
     fecha_fin_prevista
@@ -53,7 +55,6 @@ const registrarObra = async (obra) => {
     `INSERT INTO obras (
       id_cliente,
       nombre_obra,
-      personal_responsable,
       presupuesto_planificado,
       costo_real_acumulado,
       porcentaje_avance,
@@ -61,12 +62,11 @@ const registrarObra = async (obra) => {
       fecha_fin_prevista,
       estado
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     RETURNING *`,
     [
       id_cliente,
       nombre_obra,
-      personal_responsable,
       presupuesto_planificado,
       0,
       0,
@@ -84,7 +84,6 @@ const modificarObra = async (id, obra) => {
   const {
     id_cliente,
     nombre_obra,
-    personal_responsable,
     presupuesto_planificado,
     fecha_inicio,
     fecha_fin_prevista
@@ -94,16 +93,14 @@ const modificarObra = async (id, obra) => {
     `UPDATE obras
      SET id_cliente = $1,
          nombre_obra = $2,
-         personal_responsable = $3,
-         presupuesto_planificado = $4,
-         fecha_inicio = $5,
-         fecha_fin_prevista = $6
-     WHERE id_obra = $7
+         presupuesto_planificado = $3,
+         fecha_inicio = $4,
+         fecha_fin_prevista = $5
+     WHERE id_obra = $6
      RETURNING *`,
     [
       id_cliente,
       nombre_obra,
-      personal_responsable,
       presupuesto_planificado,
       fecha_inicio,
       fecha_fin_prevista,
@@ -127,10 +124,152 @@ const cambiarEstadoObra = async (id, estado) => {
   return resultado.rows[0];
 };
 
+
+// ===============================
+// TRABAJADORES DE LAS OBRAS
+// ===============================
+
+// Listar trabajadores de una obra
+const listarTrabajadoresPorObra = async (id_obra) => {
+  const resultado = await pool.query(
+    `SELECT *
+     FROM personales
+     WHERE id_obra = $1
+     ORDER BY nombre_trabajador ASC`,
+    [id_obra]
+  );
+
+  return resultado.rows;
+};
+
+// Listar todos los trabajadores con su obra
+const listarTodosLosTrabajadores = async () => {
+  const resultado = await pool.query(`
+    SELECT
+      p.id_personal,
+      p.id_obra,
+      p.nombre_trabajador,
+      p.cargo,
+      p.telefono,
+      p.gmail,
+      p.direccion,
+      o.nombre_obra
+    FROM personales p
+    INNER JOIN obras o
+      ON p.id_obra = o.id_obra
+    ORDER BY p.id_personal DESC
+  `);
+
+  return resultado.rows;
+};
+
+// Registrar trabajador
+const registrarTrabajador = async (trabajador) => {
+  const {
+    id_obra,
+    nombre_trabajador,
+    cargo,
+    telefono,
+    gmail,
+    direccion
+  } = trabajador;
+
+  const resultado = await pool.query(
+    `INSERT INTO personales (
+      id_obra,
+      nombre_trabajador,
+      cargo,
+      telefono,
+      gmail,
+      direccion
+    )
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING *`,
+    [
+      id_obra,
+      nombre_trabajador,
+      cargo,
+      telefono,
+      gmail,
+      direccion
+    ]
+  );
+
+  return resultado.rows[0];
+};
+
+// Buscar trabajador por ID
+const buscarTrabajadorPorId = async (id) => {
+  const resultado = await pool.query(
+    `SELECT *
+     FROM personales
+     WHERE id_personal = $1
+     LIMIT 1`,
+    [id]
+  );
+
+  return resultado.rows[0];
+};
+
+// Modificar trabajador
+const modificarTrabajador = async (id, trabajador) => {
+  const {
+    id_obra,
+    nombre_trabajador,
+    cargo,
+    telefono,
+    gmail,
+    direccion
+  } = trabajador;
+
+  const resultado = await pool.query(
+    `UPDATE personales
+     SET id_obra = $1,
+         nombre_trabajador = $2,
+         cargo = $3,
+         telefono = $4,
+         gmail = $5,
+         direccion = $6
+     WHERE id_personal = $7
+     RETURNING *`,
+    [
+      id_obra,
+      nombre_trabajador,
+      cargo,
+      telefono,
+      gmail,
+      direccion,
+      id
+    ]
+  );
+
+  return resultado.rows[0];
+};
+
+// Eliminar trabajador
+const eliminarTrabajador = async (id) => {
+  const resultado = await pool.query(
+    `DELETE FROM personales
+     WHERE id_personal = $1
+     RETURNING *`,
+    [id]
+  );
+
+  return resultado.rows[0];
+};
+
+
 module.exports = {
   listarObras,
   buscarObraPorId,
   registrarObra,
   modificarObra,
-  cambiarEstadoObra
+  cambiarEstadoObra,
+
+  listarTrabajadoresPorObra,
+  listarTodosLosTrabajadores,
+  registrarTrabajador,
+  buscarTrabajadorPorId,
+  modificarTrabajador,
+  eliminarTrabajador
 };
