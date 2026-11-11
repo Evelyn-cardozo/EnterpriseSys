@@ -17,7 +17,9 @@
 
 <body>
 
+  <!-- ENCABEZADO -->
   <header class="encabezado">
+
     <a href="/inicio" class="volver">
       <i class="fa-solid fa-arrow-left"></i>
       Volver al inicio
@@ -28,12 +30,17 @@
       Gestión de Inventario
     </h1>
 
-    <p>Administración de materiales y control de existencias</p>
+    <p>Administración de materiales, solicitudes y existencias</p>
+
   </header>
+
 
   <main class="contenedor">
 
+    <!-- ================================= -->
     <!-- RESUMEN DEL INVENTARIO -->
+    <!-- ================================= -->
+
     <section class="resumen">
 
       <article class="tarjeta">
@@ -57,32 +64,40 @@
     </section>
 
 
-    <!-- LISTADO DE MATERIALES -->
+    <!-- ================================= -->
+    <!-- MATERIALES REGISTRADOS -->
+    <!-- ================================= -->
+
     <section class="panel">
 
       <div class="panel-encabezado">
-        <h2>Materiales registrados</h2>
+
+        <h2>
+          <i class="fa-solid fa-boxes-stacked"></i>
+          Materiales registrados
+        </h2>
 
         <button type="button" id="btnNuevoMaterial">
           <i class="fa-solid fa-plus"></i>
           Nuevo material
         </button>
+
       </div>
 
-      <!-- BUSCADOR -->
       <div class="filtros">
+
         <input
           type="search"
           id="buscarMaterial"
           placeholder="Buscar material..."
           aria-label="Buscar material"
         >
+
       </div>
 
-      <!-- TABLA -->
       <div class="tabla-contenedor">
 
-        <table aria-label="Listado de materiales del inventario">
+        <table aria-label="Listado de materiales">
 
           <thead>
             <tr>
@@ -97,16 +112,17 @@
           </thead>
 
           <tbody id="tablaMateriales">
+
             <tr>
               <td colspan="7">Cargando materiales...</td>
             </tr>
+
           </tbody>
 
         </table>
 
       </div>
 
-      <!-- MENSAJES -->
       <p
         id="mensajeInventario"
         role="status"
@@ -115,7 +131,179 @@
 
     </section>
 
+
+    <!-- ================================= -->
+    <!-- SOLICITUDES DE MATERIALES -->
+    <!-- ================================= -->
+
+    <section class="panel" id="seccionSolicitudes">
+
+      <div class="panel-encabezado">
+
+        <h2>
+          <i class="fa-solid fa-clipboard-list"></i>
+          Solicitudes de materiales
+        </h2>
+
+        <button
+          type="button"
+          id="btnActualizarSolicitudes"
+        >
+          <i class="fa-solid fa-rotate"></i>
+          Actualizar
+        </button>
+
+      </div>
+
+      <p>
+        Consulta y gestiona las solicitudes realizadas para las diferentes obras.
+      </p>
+
+      <!-- FILTROS DE SOLICITUDES -->
+
+      <div class="filtros">
+
+        <input
+          type="search"
+          id="buscarSolicitud"
+          placeholder="Buscar por obra o solicitante..."
+          aria-label="Buscar solicitud"
+        >
+
+        <select id="filtroEstadoSolicitud">
+
+          <option value="">Todos los estados</option>
+          <option value="Pendiente">Pendientes</option>
+          <option value="Aprobada">Aprobadas</option>
+          <option value="Rechazada">Rechazadas</option>
+          <option value="Parcial">Entregas parciales</option>
+          <option value="Entregada">Entregadas</option>
+
+        </select>
+
+      </div>
+
+
+      <!-- TABLA DE SOLICITUDES -->
+
+      <div class="tabla-contenedor">
+
+        <table aria-label="Solicitudes de materiales">
+
+          <thead>
+            <tr>
+              <th>N.º</th>
+              <th>Obra</th>
+              <th>Solicitante</th>
+              <th>Fecha</th>
+              <th>Materiales</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody id="tablaSolicitudes">
+
+            <tr>
+              <td colspan="7">
+                Cargando solicitudes...
+              </td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+      <p
+        id="mensajeSolicitudes"
+        role="status"
+        aria-live="polite"
+      ></p>
+
+    </section>
+
+
+    <!-- ================================= -->
+    <!-- HISTORIAL DE SOLICITUDES -->
+    <!-- ================================= -->
+
+    <section class="panel" id="seccionHistorial">
+
+      <div class="panel-encabezado">
+
+        <h2>
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          Historial de solicitudes
+        </h2>
+
+        <button
+          type="button"
+          id="btnActualizarHistorial"
+        >
+          <i class="fa-solid fa-rotate"></i>
+          Actualizar historial
+        </button>
+
+      </div>
+
+      <p>
+        Consulta las solicitudes procesadas y las entregas realizadas.
+      </p>
+
+      <div class="filtros">
+
+        <input
+          type="search"
+          id="buscarHistorial"
+          placeholder="Buscar en el historial..."
+          aria-label="Buscar en el historial"
+        >
+
+      </div>
+
+      <div class="tabla-contenedor">
+
+        <table aria-label="Historial de solicitudes">
+
+          <thead>
+            <tr>
+              <th>N.º</th>
+              <th>Obra</th>
+              <th>Solicitante</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Detalle</th>
+            </tr>
+          </thead>
+
+          <tbody id="tablaHistorial">
+
+            <tr>
+              <td colspan="6">
+                Cargando historial...
+              </td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+      <p
+        id="mensajeHistorial"
+        role="status"
+        aria-live="polite"
+      ></p>
+
+    </section>
+
   </main>
+
+
+  <!-- JAVASCRIPT -->
 
   <script src="/js/inventario.js"></script>
 

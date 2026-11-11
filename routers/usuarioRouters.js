@@ -10,6 +10,7 @@ const usuarioController = require("../controllers/usuarioController");
 // Ruta para iniciar sesión
 router.post("/login", usuarioController.login);
 router.post("/logout", usuarioController.logout);
+router.get("/sesion", usuarioController.obtenerSesion);
 
 // Exportamos las rutas
 module.exports = router;

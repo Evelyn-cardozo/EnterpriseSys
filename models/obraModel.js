@@ -14,8 +14,6 @@ const listarObras = async () => {
       c.nombre_razon_social AS nombre_cliente,
       o.nombre_obra,
       o.presupuesto_planificado,
-      o.costo_real_acumulado,
-      o.porcentaje_avance,
       o.fecha_inicio,
       o.fecha_fin_prevista,
       o.estado
@@ -56,20 +54,16 @@ const registrarObra = async (obra) => {
       id_cliente,
       nombre_obra,
       presupuesto_planificado,
-      costo_real_acumulado,
-      porcentaje_avance,
       fecha_inicio,
       fecha_fin_prevista,
       estado
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING *`,
     [
       id_cliente,
       nombre_obra,
       presupuesto_planificado,
-      0,
-      0,
       fecha_inicio,
       fecha_fin_prevista,
       "Planificada"
@@ -97,6 +91,7 @@ const modificarObra = async (id, obra) => {
          fecha_inicio = $4,
          fecha_fin_prevista = $5
      WHERE id_obra = $6
+       AND LOWER(TRIM(estado)) NOT IN ('finalizada', 'cancelada')
      RETURNING *`,
     [
       id_cliente,
@@ -107,6 +102,26 @@ const modificarObra = async (id, obra) => {
       id
     ]
   );
+
+  if (resultado.rows.length === 0) {
+    const obraExistente = await pool.query(
+      `SELECT estado
+       FROM obras
+       WHERE id_obra = $1`,
+      [id]
+    );
+
+    if (obraExistente.rows.length === 0) {
+      return null;
+    }
+
+    const error = new Error(
+      "No se puede modificar una obra finalizada o cancelada."
+    );
+
+    error.codigo = "OBRA_NO_MODIFICABLE";
+    throw error;
+  }
 
   return resultado.rows[0];
 };
@@ -126,47 +141,61 @@ const cambiarEstadoObra = async (id, estado) => {
 
 
 // ===============================
-// TRABAJADORES DE LAS OBRAS
+// TRABAJADORES
 // ===============================
 
-// Listar trabajadores de una obra
+// Listar trabajadores asignados a una obra
 const listarTrabajadoresPorObra = async (id_obra) => {
   const resultado = await pool.query(
-    `SELECT *
-     FROM personales
-     WHERE id_obra = $1
-     ORDER BY nombre_trabajador ASC`,
+    `SELECT
+       p.id_personal,
+       p.nombre_trabajador,
+       p.cargo,
+       p.telefono,
+       p.gmail,
+       p.direccion,
+       op.id_obra_personal,
+       op.fecha_asignacion,
+       op.fecha_fin,
+       op.estado AS estado_asignacion
+     FROM obra_personal op
+     INNER JOIN personales p
+       ON p.id_personal = op.id_personal
+     WHERE op.id_obra = $1
+       AND op.estado = 'Activo'
+     ORDER BY p.nombre_trabajador ASC`,
     [id_obra]
   );
 
   return resultado.rows;
 };
 
-// Listar todos los trabajadores con su obra
+// Listar TODOS los trabajadores registrados
 const listarTodosLosTrabajadores = async () => {
   const resultado = await pool.query(`
     SELECT
       p.id_personal,
-      p.id_obra,
       p.nombre_trabajador,
       p.cargo,
       p.telefono,
       p.gmail,
       p.direccion,
-      o.nombre_obra
+      (
+        SELECT COUNT(*)
+        FROM obra_personal op
+        WHERE op.id_personal = p.id_personal
+          AND op.estado = 'Activo'
+      ) AS obras_activas
     FROM personales p
-    INNER JOIN obras o
-      ON p.id_obra = o.id_obra
     ORDER BY p.id_personal DESC
   `);
 
   return resultado.rows;
 };
 
-// Registrar trabajador
+// Registrar trabajador sin asignarlo a una obra
 const registrarTrabajador = async (trabajador) => {
   const {
-    id_obra,
     nombre_trabajador,
     cargo,
     telefono,
@@ -176,22 +205,20 @@ const registrarTrabajador = async (trabajador) => {
 
   const resultado = await pool.query(
     `INSERT INTO personales (
-      id_obra,
       nombre_trabajador,
       cargo,
       telefono,
       gmail,
       direccion
     )
-    VALUES ($1, $2, $3, $4, $5, $6)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING *`,
     [
-      id_obra,
       nombre_trabajador,
       cargo,
       telefono,
-      gmail,
-      direccion
+      gmail || null,
+      direccion || null
     ]
   );
 
@@ -211,10 +238,9 @@ const buscarTrabajadorPorId = async (id) => {
   return resultado.rows[0];
 };
 
-// Modificar trabajador
+// Modificar datos personales
 const modificarTrabajador = async (id, trabajador) => {
   const {
-    id_obra,
     nombre_trabajador,
     cargo,
     telefono,
@@ -224,21 +250,19 @@ const modificarTrabajador = async (id, trabajador) => {
 
   const resultado = await pool.query(
     `UPDATE personales
-     SET id_obra = $1,
-         nombre_trabajador = $2,
-         cargo = $3,
-         telefono = $4,
-         gmail = $5,
-         direccion = $6
-     WHERE id_personal = $7
+     SET nombre_trabajador = $1,
+         cargo = $2,
+         telefono = $3,
+         gmail = $4,
+         direccion = $5
+     WHERE id_personal = $6
      RETURNING *`,
     [
-      id_obra,
       nombre_trabajador,
       cargo,
       telefono,
-      gmail,
-      direccion,
+      gmail || null,
+      direccion || null,
       id
     ]
   );
@@ -246,11 +270,84 @@ const modificarTrabajador = async (id, trabajador) => {
   return resultado.rows[0];
 };
 
-// Eliminar trabajador
+
+// ===============================
+// ASIGNACIONES DE TRABAJADORES
+// ===============================
+
+// Asignar un trabajador existente a una obra
+const asignarTrabajadorAObra = async (id_obra, id_personal) => {
+
+  // Comprobar que la obra exista y permita asignaciones
+  const obra = await pool.query(
+    `SELECT estado
+     FROM obras
+     WHERE id_obra = $1`,
+    [id_obra]
+  );
+
+  if (obra.rows.length === 0) {
+    throw new Error("La obra no existe.");
+  }
+
+  if (
+    ["finalizada", "cancelada"].includes(
+      obra.rows[0].estado.trim().toLowerCase()
+    )
+  ) {
+    throw new Error(
+      "No se pueden asignar trabajadores a una obra finalizada o cancelada."
+    );
+  }
+
+  try {
+    const resultado = await pool.query(
+      `INSERT INTO obra_personal (
+        id_obra,
+        id_personal,
+        estado
+      )
+      VALUES ($1, $2, 'Activo')
+      RETURNING *`,
+      [id_obra, id_personal]
+    );
+
+    return resultado.rows[0];
+
+  } catch (error) {
+    // El trabajador ya está asignado a esa obra
+    if (error.code === "23505") {
+      throw new Error(
+        "Este trabajador ya está asignado a esta obra."
+      );
+    }
+
+    // El trabajador no existe
+    if (error.code === "23503") {
+      throw new Error(
+        "El trabajador o la obra indicada no existen."
+      );
+    }
+
+    throw error;
+  }
+};
+
+
+// ===============================
+// ELIMINAR TRABAJADOR
+// ===============================
+
+// Solo permite eliminar trabajadores sin historial de asignaciones
 const eliminarTrabajador = async (id) => {
   const resultado = await pool.query(
-    `DELETE FROM personales
-     WHERE id_personal = $1
+    `DELETE FROM personales p
+     WHERE p.id_personal = $1
+       AND NOT EXISTS (
+         SELECT 1
+         FROM obra_personal op
+         WHERE op.id_personal = p.id_personal
+       )
      RETURNING *`,
     [id]
   );
@@ -258,6 +355,10 @@ const eliminarTrabajador = async (id) => {
   return resultado.rows[0];
 };
 
+
+// ===============================
+// EXPORTAR FUNCIONES
+// ===============================
 
 module.exports = {
   listarObras,
@@ -271,5 +372,7 @@ module.exports = {
   registrarTrabajador,
   buscarTrabajadorPorId,
   modificarTrabajador,
-  eliminarTrabajador
+  eliminarTrabajador,
+
+  asignarTrabajadorAObra
 };

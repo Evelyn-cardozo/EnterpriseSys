@@ -1,72 +1,47 @@
-// Importamos bcrypt para comparar la contraseña
-// escrita por el usuario con el hash guardado en PostgreSQL.
-const bcrypt = require("bcrypt");
 
-// Importamos el modelo de usuario para buscar
-// los datos del usuario en PostgreSQL.
+const bcrypt = require("bcrypt");
 const usuarioModel = require("../models/usuarioModel");
 
-// Función para iniciar sesión
+// ========================================
+// INICIAR SESIÓN
+// ========================================
+
 const login = async (req, res) => {
   try {
-    // Recibimos los datos enviados desde el formulario
     const { username, password } = req.body;
 
-    // Verificamos que los campos no estén vacíos
     if (!username || !password) {
       return res.status(400).json({
         mensaje: "Usuario y contraseña son obligatorios",
       });
     }
 
-    const logout = (req, res) => {
-      req.session.destroy((error) => {
-        if (error) {
-          console.error("Error al cerrar sesión:", error);
-
-          return res.status(500).json({
-            mensaje: "No se pudo cerrar la sesión",
-          });
-        }
-
-        res.clearCookie("connect.sid");
-
-        return res.status(200).json({
-          mensaje: "Sesión cerrada correctamente",
-        });
-      });
-    };
-    // Buscamos el usuario en PostgreSQL
     const usuario = await usuarioModel.buscarPorUsername(username);
 
-    // Si no encontramos el usuario
     if (!usuario) {
       return res.status(401).json({
         mensaje: "Usuario o contraseña incorrectos",
       });
     }
 
-    // Verificamos si el usuario está activo
     if (usuario.estado !== "Activo") {
       return res.status(403).json({
         mensaje: "El usuario está inactivo",
       });
     }
 
-    // Comparamos la contraseña escrita por el usuario
-    // con el hash almacenado en la base de datos.
     const passwordValida = await bcrypt.compare(
       password,
-      usuario.password_hash,
+      usuario.password_hash
     );
 
-    // Si la contraseña no coincide
     if (!passwordValida) {
       return res.status(401).json({
         mensaje: "Usuario o contraseña incorrectos",
       });
     }
 
+    // Guardar los datos del usuario en la sesión
     req.session.usuario = {
       id_usuario: usuario.id_usuario,
       username: usuario.username,
@@ -89,16 +64,20 @@ const login = async (req, res) => {
         usuario: req.session.usuario,
       });
     });
+
   } catch (error) {
-    // Mostramos el error en la consola
     console.error("Error en el login:", error);
 
-    // Respondemos con error interno del servidor
     return res.status(500).json({
       mensaje: "Error interno del servidor",
     });
   }
 };
+
+// ========================================
+// CERRAR SESIÓN
+// ========================================
+
 const logout = (req, res) => {
   req.session.destroy((error) => {
     if (error) {
@@ -116,9 +95,23 @@ const logout = (req, res) => {
     });
   });
 };
+// ========================================
+// OBTENER USUARIO DE LA SESIÓN ACTUAL
+// ========================================
 
-// Exportamos la función login
+const obtenerSesion = (req, res) => {
+  if (!req.session || !req.session.usuario) {
+    return res.status(401).json({
+      mensaje: "No hay una sesión activa",
+    });
+  }
+
+  return res.status(200).json({
+    usuario: req.session.usuario,
+  });
+};
 module.exports = {
   login,
   logout,
+  obtenerSesion
 };

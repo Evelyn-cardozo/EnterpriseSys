@@ -1,4 +1,3 @@
-
 // ========================================
 // ELEMENTOS DEL MÓDULO DE OBRAS
 // ========================================
@@ -27,12 +26,17 @@ const errorFechas = document.getElementById("errorFechas");
 
 const panelPersonal = document.getElementById("panelPersonal");
 const formularioPersonal = document.getElementById("formPersonal");
+
 const tablaPersonal = document.getElementById("tablaPersonal");
+const tablaRegistroPersonal = document.getElementById("tablaRegistroPersonal");
+
 const mensajePersonal = document.getElementById("mensajePersonal");
+
 const totalPersonal = document.getElementById("totalPersonal");
+const totalRegistroPersonal = document.getElementById("totalRegistroPersonal");
 
 const idPersonal = document.getElementById("id_personal");
-const idObraPersonal = document.getElementById("id_obra_personal");
+
 const nombreTrabajador = document.getElementById("nombre_trabajador");
 const cargoTrabajador = document.getElementById("cargo");
 const telefonoTrabajador = document.getElementById("telefono");
@@ -49,6 +53,7 @@ const selectorMaterial = document.getElementById("materialSeleccionado");
 const cantidadMaterial = document.getElementById("cantidadMaterial");
 const tablaDetalleSolicitud = document.getElementById("tablaDetalleSolicitud");
 const formularioSolicitudMateriales = document.getElementById("formSolicitudMateriales");
+
 const btnAgregarMaterial = document.getElementById("btnAgregarMaterial");
 const btnEnviarSolicitud = document.getElementById("btnEnviarSolicitud");
 
@@ -68,6 +73,7 @@ let obraEditandoId = null;
 
 let obraPersonalActual = null;
 let trabajadores = [];
+let todosTrabajadores = [];
 
 let obraMaterialesActual = null;
 let materialesDisponibles = [];
@@ -121,14 +127,25 @@ function normalizarTexto(valor) {
   return String(valor ?? "").trim().toLowerCase();
 }
 
+// Verificar si una obra ya no permite modificaciones
+function obraBloqueada(obra) {
+  const estado = normalizarTexto(obra.estado);
+
+  return estado === "finalizada" || estado === "cancelada";
+}
+
 // Mostrar mensaje general
 function mostrarMensajePersonal(texto) {
-  mensajePersonal.textContent = texto;
+  if (mensajePersonal) {
+    mensajePersonal.textContent = texto;
+  }
 }
 
 // Mostrar mensaje de materiales
 function mostrarMensajeMateriales(texto) {
-  mensajeMateriales.textContent = texto;
+  if (mensajeMateriales) {
+    mensajeMateriales.textContent = texto;
+  }
 }
 
 // Crear una celda segura
@@ -277,7 +294,7 @@ document.getElementById("btnCancelar")
 
 async function cargarObras() {
   tablaObras.innerHTML =
-    '<tr><td colspan="11">Cargando obras...</td></tr>';
+    '<tr><td colspan="9">Cargando obras...</td></tr>';
 
   try {
     const respuesta = await fetch("/obras");
@@ -293,7 +310,7 @@ async function cargarObras() {
 
   } catch (error) {
     tablaObras.innerHTML =
-      '<tr><td colspan="11">Error al cargar las obras.</td></tr>';
+      '<tr><td colspan="9">Error al cargar las obras.</td></tr>';
 
     mensaje.textContent = error.message;
   }
@@ -324,7 +341,7 @@ function mostrarObras() {
     const fila = document.createElement("tr");
     const celda = crearCelda("No se encontraron obras.");
 
-    celda.colSpan = 11;
+    celda.colSpan = 9;
 
     fila.appendChild(celda);
     tablaObras.appendChild(fila);
@@ -343,45 +360,17 @@ function mostrarObras() {
       cancelada: "estado-cancelada",
     };
 
+    // Datos principales
     const valores = [
       obra.id_obra,
       obra.nombre_obra,
       obra.nombre_cliente,
       formatearImporte(obra.presupuesto_planificado),
-      formatearImporte(obra.costo_real_acumulado),
     ];
 
     valores.forEach(valor => {
       fila.appendChild(crearCelda(valor));
     });
-
-    // Avance
-    const celdaAvance = document.createElement("td");
-    const contenedorProgreso = document.createElement("div");
-
-    contenedorProgreso.className = "progreso-contenedor";
-
-    const barra = document.createElement("div");
-    barra.className = "progreso-barra";
-
-    const relleno = document.createElement("div");
-    relleno.className = "progreso-relleno";
-
-    const porcentaje = Math.min(
-      100,
-      Math.max(0, Number(obra.porcentaje_avance) || 0)
-    );
-
-    relleno.style.width = `${porcentaje}%`;
-
-    barra.appendChild(relleno);
-
-    const textoAvance = document.createElement("span");
-    textoAvance.textContent = `${porcentaje}%`;
-
-    contenedorProgreso.append(barra, textoAvance);
-    celdaAvance.appendChild(contenedorProgreso);
-    fila.appendChild(celdaAvance);
 
     // Fechas
     fila.appendChild(crearCelda(formatearFecha(obra.fecha_inicio)));
@@ -392,7 +381,6 @@ function mostrarObras() {
     const etiquetaEstado = document.createElement("span");
 
     etiquetaEstado.textContent = obra.estado || "Planificada";
-
     etiquetaEstado.className =
       clasesEstado[estado] || "estado-planificada";
 
@@ -420,6 +408,7 @@ function mostrarObras() {
 
     contenedorAcciones.className = "acciones";
 
+    // Personal
     const botonPersonal = crearBotonIcono(
       "users",
       "Personal"
@@ -431,18 +420,22 @@ function mostrarObras() {
 
     contenedorAcciones.appendChild(botonPersonal);
 
-    const botonModificar = crearBotonIcono(
-      "pencil",
-      "Modificar obra"
-    );
+    // Modificar
+    if (!obraBloqueada(obra)) {
+      const botonModificar = crearBotonIcono(
+        "pencil",
+        "Modificar obra"
+      );
 
-    botonModificar.addEventListener("click", () => {
-      prepararModificacion(obra);
-    });
+      botonModificar.addEventListener("click", () => {
+        prepararModificacion(obra);
+      });
 
-    contenedorAcciones.appendChild(botonModificar);
+      contenedorAcciones.appendChild(botonModificar);
+    }
 
-    if (estado !== "finalizada" && estado !== "cancelada") {
+    // Cambiar estado
+    if (!obraBloqueada(obra)) {
       const esPlanificada = estado === "planificada";
 
       const botonEstado = crearBotonIcono(
@@ -471,6 +464,13 @@ function mostrarObras() {
 // ========================================
 
 async function prepararModificacion(obra) {
+  if (obraBloqueada(obra)) {
+    mensaje.textContent =
+      "No se puede modificar una obra finalizada o cancelada.";
+
+    return;
+  }
+
   formulario.reset();
   limpiarErrores();
 
@@ -697,6 +697,22 @@ formulario.addEventListener("submit", async event => {
 
   const esModificacion = obraEditandoId !== null;
 
+  if (esModificacion) {
+    const obraActual = obras.find(
+      obra => Number(obra.id_obra) === Number(obraEditandoId)
+    );
+
+    if (!obraActual || obraBloqueada(obraActual)) {
+      mensaje.textContent =
+        "No se puede modificar una obra finalizada o cancelada.";
+
+      obraEditandoId = null;
+      formularioContenedor.classList.add("oculto");
+
+      return;
+    }
+  }
+
   const url = esModificacion
     ? `/obras/${obraEditandoId}`
     : "/obras";
@@ -757,14 +773,18 @@ formulario.addEventListener("submit", async event => {
 // GESTIÓN DE TRABAJADORES
 // ==================================================
 
-// Abrir panel de personal
+// ========================================
+// ABRIR PANEL DE PERSONAL
+// ========================================
+
 async function abrirPersonal(obra) {
   obraPersonalActual = obra;
 
+  trabajadores = [];
+  todosTrabajadores = [];
+
   document.getElementById("nombreObraPersonal").textContent =
     `Obra: ${obra.nombre_obra}`;
-
-  idObraPersonal.value = obra.id_obra;
 
   formularioContenedor.classList.add("oculto");
   panelMateriales.classList.add("oculto");
@@ -773,21 +793,40 @@ async function abrirPersonal(obra) {
 
   limpiarFormularioPersonal();
 
-  await cargarTrabajadores(obra.id_obra);
+  mostrarMensajePersonal("Cargando información del personal...");
+
+  await Promise.all([
+    cargarTrabajadores(obra.id_obra),
+    cargarRegistroGeneral(),
+  ]);
+
+  mostrarMensajePersonal("");
 
   panelPersonal.scrollIntoView({
     behavior: "smooth",
   });
 }
 
-// Cerrar panel
+// ========================================
+// CERRAR PANEL
+// ========================================
+
 document.getElementById("btnCerrarPersonal")
   .addEventListener("click", () => {
     panelPersonal.classList.add("oculto");
+
     limpiarFormularioPersonal();
+
+    obraPersonalActual = null;
+
+    trabajadores = [];
+    todosTrabajadores = [];
   });
 
-// Cargar trabajadores
+// ========================================
+// CARGAR PERSONAL ASIGNADO A LA OBRA
+// ========================================
+
 async function cargarTrabajadores(id_obra) {
   tablaPersonal.innerHTML =
     '<tr><td colspan="7">Cargando trabajadores...</td></tr>';
@@ -800,7 +839,9 @@ async function cargarTrabajadores(id_obra) {
     const datos = await leerRespuesta(respuesta);
 
     if (!respuesta.ok || !Array.isArray(datos)) {
-      throw new Error("No se pudieron cargar los trabajadores.");
+      throw new Error(
+        datos.mensaje || "No se pudieron cargar los trabajadores de la obra."
+      );
     }
 
     trabajadores = datos;
@@ -808,6 +849,8 @@ async function cargarTrabajadores(id_obra) {
     mostrarTrabajadores();
 
   } catch (error) {
+    trabajadores = [];
+
     tablaPersonal.innerHTML =
       '<tr><td colspan="7">Error al cargar trabajadores.</td></tr>';
 
@@ -815,16 +858,57 @@ async function cargarTrabajadores(id_obra) {
   }
 }
 
-// Mostrar trabajadores
+// ========================================
+// CARGAR REGISTRO GENERAL DE TRABAJADORES
+// ========================================
+
+async function cargarRegistroGeneral() {
+  tablaRegistroPersonal.innerHTML =
+    '<tr><td colspan="7">Cargando registro de personal...</td></tr>';
+
+  try {
+    const respuesta = await fetch("/obras/trabajadores");
+
+    const datos = await leerRespuesta(respuesta);
+
+    if (!respuesta.ok || !Array.isArray(datos)) {
+      throw new Error(
+        datos.mensaje || "No se pudo cargar el registro general."
+      );
+    }
+
+    todosTrabajadores = datos;
+
+    mostrarRegistroGeneral();
+
+  } catch (error) {
+    todosTrabajadores = [];
+
+    tablaRegistroPersonal.innerHTML =
+      '<tr><td colspan="7">Error al cargar el registro general.</td></tr>';
+
+    mostrarMensajePersonal(error.message);
+  }
+}
+
+// ========================================
+// MOSTRAR PERSONAL ASIGNADO
+// ========================================
+
 function mostrarTrabajadores() {
   tablaPersonal.replaceChildren();
 
   totalPersonal.textContent =
-    `${trabajadores.length} ${trabajadores.length === 1 ? "trabajador" : "trabajadores"}`;
+    `${trabajadores.length} ${
+      trabajadores.length === 1 ? "trabajador" : "trabajadores"
+    }`;
 
   if (trabajadores.length === 0) {
     const fila = document.createElement("tr");
-    const celda = crearCelda("No hay trabajadores registrados.");
+
+    const celda = crearCelda(
+      "Esta obra todavía no tiene trabajadores asignados."
+    );
 
     celda.colSpan = 7;
 
@@ -850,10 +934,8 @@ function mostrarTrabajadores() {
       fila.appendChild(crearCelda(valor));
     });
 
+    // Acciones
     const celdaAcciones = document.createElement("td");
-    const contenedorAcciones = document.createElement("div");
-
-    contenedorAcciones.className = "acciones";
 
     const botonModificar = crearBotonIcono(
       "pencil",
@@ -864,21 +946,8 @@ function mostrarTrabajadores() {
       prepararModificacionPersonal(trabajador);
     });
 
-    const botonEliminar = crearBotonIcono(
-      "trash-2",
-      "Eliminar trabajador"
-    );
+    celdaAcciones.appendChild(botonModificar);
 
-    botonEliminar.addEventListener("click", () => {
-      eliminarTrabajador(trabajador);
-    });
-
-    contenedorAcciones.append(
-      botonModificar,
-      botonEliminar
-    );
-
-    celdaAcciones.appendChild(contenedorAcciones);
     fila.appendChild(celdaAcciones);
 
     tablaPersonal.appendChild(fila);
@@ -887,12 +956,180 @@ function mostrarTrabajadores() {
   actualizarIconos();
 }
 
-// Limpiar formulario de personal
+// ========================================
+// MOSTRAR REGISTRO GENERAL
+// ========================================
+
+function mostrarRegistroGeneral() {
+  tablaRegistroPersonal.replaceChildren();
+
+  totalRegistroPersonal.textContent =
+    `${todosTrabajadores.length} ${
+      todosTrabajadores.length === 1
+        ? "trabajador registrado"
+        : "trabajadores registrados"
+    }`;
+
+  if (todosTrabajadores.length === 0) {
+    const fila = document.createElement("tr");
+
+    const celda = crearCelda(
+      "Todavía no hay trabajadores registrados."
+    );
+
+    celda.colSpan = 7;
+
+    fila.appendChild(celda);
+    tablaRegistroPersonal.appendChild(fila);
+
+    return;
+  }
+
+  todosTrabajadores.forEach(trabajador => {
+    const fila = document.createElement("tr");
+
+    const valores = [
+      trabajador.id_personal,
+      trabajador.nombre_trabajador,
+      trabajador.cargo,
+      trabajador.telefono,
+      trabajador.gmail,
+      trabajador.direccion,
+    ];
+
+    valores.forEach(valor => {
+      fila.appendChild(crearCelda(valor));
+    });
+
+    const celdaAcciones = document.createElement("td");
+
+    // Verificar si ya está asignado a esta obra
+    const yaAsignado = trabajadores.some(
+      asignado =>
+        Number(asignado.id_personal) ===
+        Number(trabajador.id_personal)
+    );
+
+    if (yaAsignado) {
+      const etiqueta = document.createElement("span");
+
+      etiqueta.textContent = "Ya asignado";
+      etiqueta.className = "estado-finalizada";
+
+      celdaAcciones.appendChild(etiqueta);
+
+    } else if (obraBloqueada(obraPersonalActual)) {
+      const etiqueta = document.createElement("span");
+
+      etiqueta.textContent = "Obra cerrada";
+      etiqueta.className = "estado-finalizada";
+
+      celdaAcciones.appendChild(etiqueta);
+
+    } else {
+      const botonAsignar = document.createElement("button");
+
+      botonAsignar.type = "button";
+      botonAsignar.className = "btn-secundario";
+      botonAsignar.textContent = "Asignar";
+
+      botonAsignar.addEventListener("click", () => {
+        asignarTrabajador(trabajador);
+      });
+
+      celdaAcciones.appendChild(botonAsignar);
+    }
+
+    fila.appendChild(celdaAcciones);
+
+    tablaRegistroPersonal.appendChild(fila);
+  });
+
+  actualizarIconos();
+}
+
+// ========================================
+// ASIGNAR TRABAJADOR A LA OBRA
+// ========================================
+
+async function asignarTrabajador(trabajador) {
+  if (!obraPersonalActual) {
+    mostrarMensajePersonal("No se seleccionó ninguna obra.");
+    return;
+  }
+
+  // No permitir asignaciones en obras finalizadas o canceladas
+  if (obraBloqueada(obraPersonalActual)) {
+    mostrarMensajePersonal(
+      "No se pueden asignar trabajadores a una obra finalizada o cancelada."
+    );
+    return;
+  }
+
+  // Verificar duplicados antes de enviar al servidor
+  const yaAsignado = trabajadores.some(
+    asignado =>
+      Number(asignado.id_personal) ===
+      Number(trabajador.id_personal)
+  );
+
+  if (yaAsignado) {
+    mostrarMensajePersonal(
+      "Este trabajador ya está asignado a esta obra."
+    );
+    return;
+  }
+
+  const confirmar = window.confirm(
+    `¿Querés asignar a ${trabajador.nombre_trabajador} a la obra "${obraPersonalActual.nombre_obra}"?`
+  );
+
+  if (!confirmar) return;
+
+  try {
+    const respuesta = await fetch(
+      `/obras/${obraPersonalActual.id_obra}/trabajadores`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id_personal: Number(trabajador.id_personal),
+        }),
+      }
+    );
+
+    const resultado = await leerRespuesta(respuesta);
+
+    if (!respuesta.ok) {
+      throw new Error(
+        resultado.mensaje || "No se pudo asignar el trabajador."
+      );
+    }
+
+    mostrarMensajePersonal(
+      resultado.mensaje || "Trabajador asignado correctamente."
+    );
+
+    await Promise.all([
+      cargarTrabajadores(obraPersonalActual.id_obra),
+      cargarRegistroGeneral(),
+    ]);
+
+  } catch (error) {
+    mostrarMensajePersonal(error.message);
+  }
+}
+
+// ========================================
+// LIMPIAR FORMULARIO DE PERSONAL
+// ========================================
+
 function limpiarFormularioPersonal() {
   formularioPersonal.reset();
 
   idPersonal.value = "";
-  idObraPersonal.value = obraPersonalActual?.id_obra || "";
 
   document.getElementById("tituloFormularioPersonal").textContent =
     "Registrar trabajador";
@@ -903,20 +1140,34 @@ function limpiarFormularioPersonal() {
   mostrarMensajePersonal("");
 }
 
-// Cancelar formulario
+// ========================================
+// CANCELAR FORMULARIO
+// ========================================
+
 document.getElementById("btnCancelarPersonal")
   .addEventListener("click", limpiarFormularioPersonal);
 
-// Preparar modificación
+// ========================================
+// PREPARAR MODIFICACIÓN
+// ========================================
+
 function prepararModificacionPersonal(trabajador) {
   idPersonal.value = trabajador.id_personal;
-  idObraPersonal.value = trabajador.id_obra;
 
-  nombreTrabajador.value = trabajador.nombre_trabajador || "";
-  cargoTrabajador.value = trabajador.cargo || "";
-  telefonoTrabajador.value = trabajador.telefono || "";
-  gmailTrabajador.value = trabajador.gmail || "";
-  direccionTrabajador.value = trabajador.direccion || "";
+  nombreTrabajador.value =
+    trabajador.nombre_trabajador || "";
+
+  cargoTrabajador.value =
+    trabajador.cargo || "";
+
+  telefonoTrabajador.value =
+    trabajador.telefono || "";
+
+  gmailTrabajador.value =
+    trabajador.gmail || "";
+
+  direccionTrabajador.value =
+    trabajador.direccion || "";
 
   document.getElementById("tituloFormularioPersonal").textContent =
     "Modificar trabajador";
@@ -931,29 +1182,30 @@ function prepararModificacionPersonal(trabajador) {
   nombreTrabajador.focus();
 }
 
-// Registrar o modificar trabajador
+// ========================================
+// REGISTRAR O MODIFICAR TRABAJADOR
+// ========================================
+
 formularioPersonal.addEventListener("submit", async event => {
   event.preventDefault();
 
   const datos = {
-    id_obra: Number(idObraPersonal.value),
     nombre_trabajador: nombreTrabajador.value.trim(),
     cargo: cargoTrabajador.value.trim(),
     telefono: telefonoTrabajador.value.trim(),
-    gmail: gmailTrabajador.value.trim(),
-    direccion: direccionTrabajador.value.trim(),
+    gmail: gmailTrabajador.value.trim() || null,
+    direccion: direccionTrabajador.value.trim() || null,
   };
 
   if (
     !datos.nombre_trabajador ||
     !datos.cargo ||
-    !datos.telefono ||
-    !datos.gmail ||
-    !datos.direccion
+    !datos.telefono
   ) {
     mostrarMensajePersonal(
-      "Completá todos los campos obligatorios."
+      "Completá el nombre, el cargo y el teléfono."
     );
+
     return;
   }
 
@@ -965,7 +1217,8 @@ formularioPersonal.addEventListener("submit", async event => {
 
   const metodo = esModificacion ? "PUT" : "POST";
 
-  const botonGuardar = document.getElementById("btnGuardarPersonal");
+  const botonGuardar =
+    document.getElementById("btnGuardarPersonal");
 
   botonGuardar.disabled = true;
 
@@ -998,7 +1251,12 @@ formularioPersonal.addEventListener("submit", async event => {
 
     limpiarFormularioPersonal();
 
-    await cargarTrabajadores(obraPersonalActual.id_obra);
+    // Actualizar las dos tablas
+    await cargarRegistroGeneral();
+
+    if (obraPersonalActual) {
+      await cargarTrabajadores(obraPersonalActual.id_obra);
+    }
 
   } catch (error) {
     mostrarMensajePersonal(error.message);
@@ -1008,46 +1266,14 @@ formularioPersonal.addEventListener("submit", async event => {
   }
 });
 
-// Eliminar trabajador
-async function eliminarTrabajador(trabajador) {
-  const confirmar = window.confirm(
-    `¿Querés eliminar a ${trabajador.nombre_trabajador} de esta obra?`
-  );
-
-  if (!confirmar) return;
-
-  try {
-    const respuesta = await fetch(
-      `/obras/trabajadores/${trabajador.id_personal}`,
-      {
-        method: "DELETE",
-      }
-    );
-
-    const resultado = await leerRespuesta(respuesta);
-
-    if (!respuesta.ok) {
-      throw new Error(
-        resultado.mensaje || "No se pudo eliminar el trabajador."
-      );
-    }
-
-    mostrarMensajePersonal(
-      resultado.mensaje || "Trabajador eliminado correctamente."
-    );
-
-    await cargarTrabajadores(obraPersonalActual.id_obra);
-
-  } catch (error) {
-    mostrarMensajePersonal(error.message);
-  }
-}
-
 // ==================================================
 // GESTIÓN DE MATERIALES DE LAS OBRAS
 // ==================================================
 
-// Abrir panel de materiales
+// ========================================
+// ABRIR PANEL DE MATERIALES
+// ========================================
+
 async function abrirPanelMateriales(obra) {
   if (!panelMateriales || !obra || !obra.id_obra) {
     console.error("No se encontró el panel o la obra no es válida.");
@@ -1099,7 +1325,10 @@ async function abrirPanelMateriales(obra) {
   });
 }
 
-// Cerrar panel de materiales
+// ========================================
+// CERRAR PANEL DE MATERIALES
+// ========================================
+
 document.getElementById("btnCerrarMateriales")
   .addEventListener("click", () => {
     panelMateriales.classList.add("oculto");
@@ -1448,7 +1677,10 @@ async function cargarSolicitudesObra() {
   }
 }
 
-// Mostrar solicitudes
+// ========================================
+// MOSTRAR SOLICITUDES
+// ========================================
+
 function mostrarSolicitudesObra() {
   tablaSolicitudes.replaceChildren();
 
@@ -1477,6 +1709,7 @@ function mostrarSolicitudesObra() {
     const etiqueta = document.createElement("span");
 
     etiqueta.textContent = solicitud.estado || "Pendiente";
+
     etiqueta.className =
       `estado-${normalizarTexto(solicitud.estado).replace(/\s+/g, "-")}`;
 
@@ -1864,9 +2097,6 @@ async function registrarEntregaMateriales(idSolicitud) {
       resultado.mensaje || "Entrega registrada correctamente."
     );
 
-    // El backend ya descuenta el stock y registra el movimiento.
-    // No se debe realizar otro descuento desde el frontend.
-
     await Promise.all([
       cargarSolicitudesObra(),
       cargarHistorialEntregas(),
@@ -1915,12 +2145,16 @@ async function cargarHistorialEntregas() {
   }
 }
 
-// Mostrar historial
+// ========================================
+// MOSTRAR HISTORIAL
+// ========================================
+
 function mostrarHistorialEntregas() {
   tablaHistorialEntregas.replaceChildren();
 
   if (movimientosObra.length === 0) {
     const fila = document.createElement("tr");
+
     const celda = crearCelda(
       "Todavía no hay materiales entregados a esta obra."
     );

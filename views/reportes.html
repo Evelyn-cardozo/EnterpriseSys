@@ -1,0 +1,372 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>EnterpriseSys - Reportes</title>
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  >
+
+  <link rel="stylesheet" href="/css/reportes.css">
+</head>
+
+<body>
+
+  <!-- BARRA SUPERIOR -->
+  <header class="barra-superior">
+
+    <div class="logo">
+      <span class="logo-icon">E</span>
+      <span>EnterpriseSys</span>
+    </div>
+
+    <nav class="menu-superior">
+      <a href="/inicio">Inicio</a>
+      <a href="/reportes-pagina" class="activo-superior">Reportes</a>
+      <a href="#">Configuración</a>
+    </nav>
+
+    <div class="usuario-superior">
+      <div class="avatar">E</div>
+      <div class="datos-usuario">
+        <strong>Evelyn</strong>
+        <span>Gerente</span>
+      </div>
+    </div>
+
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="contenido">
+
+    <section class="encabezado">
+      <div>
+        <span class="texto-pequeno">INFORMACIÓN DEL SISTEMA</span>
+        <h1>Reportes</h1>
+        <p>
+          Consulta y genera reportes de clientes, obras e inventario.
+        </p>
+      </div>
+    </section>
+
+    <!-- OPCIONES DE REPORTES -->
+    <section class="opciones-reportes">
+
+      <button class="opcion-reporte activo"
+              data-reporte="clientes">
+
+        <i class="fa-solid fa-users"></i>
+
+        <div>
+          <h3>Clientes</h3>
+          <p>Información y obras asociadas a cada cliente.</p>
+        </div>
+
+        <i class="fa-solid fa-chevron-right flecha"></i>
+      </button>
+
+      <button class="opcion-reporte"
+              data-reporte="obras">
+
+        <i class="fa-solid fa-helmet-safety"></i>
+
+        <div>
+          <h3>Obras</h3>
+          <p>Estados, presupuestos y fechas de las obras.</p>
+        </div>
+
+        <i class="fa-solid fa-chevron-right flecha"></i>
+      </button>
+
+      <button class="opcion-reporte"
+              data-reporte="inventario">
+
+        <i class="fa-solid fa-boxes-stacked"></i>
+
+        <div>
+          <h3>Inventario</h3>
+          <p>Existencias, entradas y salidas de materiales.</p>
+        </div>
+
+        <i class="fa-solid fa-chevron-right flecha"></i>
+      </button>
+
+    </section>
+
+    <!-- PANEL DE REPORTES -->
+    <section class="panel-reporte">
+
+      <!-- ACCIONES GENERALES DE REPORTES -->
+      <div class="acciones-generales">
+
+        <span class="texto-acciones">
+          <i class="fa-solid fa-file-lines"></i>
+          Opciones del reporte
+        </span>
+
+        <div class="acciones-reporte">
+
+          <button
+            type="button"
+            class="btn-imprimir"
+            onclick="imprimirReporte()"
+          >
+            <i class="fa-solid fa-print"></i>
+            Imprimir
+          </button>
+
+          <button
+            type="button"
+            class="btn-pdf"
+            onclick="descargarPDF()"
+          >
+            <i class="fa-solid fa-file-pdf"></i>
+            Descargar PDF
+          </button>
+
+        </div>
+
+      </div>
+
+      <!-- =====================================
+           REPORTE CLIENTES
+      ====================================== -->
+
+      <div class="contenido-reporte activo" id="reporte-clientes">
+
+        <div class="titulo-reporte">
+          <div>
+            <h2>
+              <i class="fa-solid fa-users"></i>
+              Reporte de clientes
+            </h2>
+            <p>Consulta la información de los clientes registrados.</p>
+          </div>
+        </div>
+
+        <div class="filtros-reporte">
+
+          <div class="campo-filtro">
+            <label for="buscarCliente">Buscar cliente</label>
+
+            <input
+              type="text"
+              id="buscarCliente"
+              placeholder="Nombre o RUC/CI"
+            >
+          </div>
+
+          <button class="btn-principal" id="btnBuscarClientes">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            Buscar
+          </button>
+
+        </div>
+
+        <div class="tabla-contenedor">
+
+          <table>
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>RUC / CI</th>
+                <th>Teléfono</th>
+                <th>Obras asociadas</th>
+              </tr>
+            </thead>
+
+            <tbody id="tablaReporteClientes">
+
+              <tr>
+                <td colspan="4">
+                  Los datos se cargarán próximamente.
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+
+        </div>
+
+      </div>
+
+      <!-- =====================================
+           REPORTE OBRAS
+      ====================================== -->
+
+      <div class="contenido-reporte" id="reporte-obras">
+
+        <div class="titulo-reporte">
+          <div>
+            <h2>
+              <i class="fa-solid fa-helmet-safety"></i>
+              Reporte de obras
+            </h2>
+
+            <p>
+              Consulta el estado y los datos generales de las obras.
+            </p>
+          </div>
+        </div>
+
+        <div class="filtros-reporte">
+
+          <div class="campo-filtro">
+            <label for="buscarObra">Nombre de obra</label>
+
+            <input
+              type="text"
+              id="buscarObra"
+              placeholder="Buscar obra..."
+            >
+          </div>
+
+          <div class="campo-filtro">
+            <label for="filtroEstadoObra">Estado</label>
+
+            <select id="filtroEstadoObra">
+              <option value="">Todos los estados</option>
+              <option value="Planificada">Planificada</option>
+              <option value="En ejecución">En ejecución</option>
+              <option value="Finalizada">Finalizada</option>
+              <option value="Cancelada">Cancelada</option>
+            </select>
+          </div>
+
+          <button class="btn-principal" id="btnBuscarObras">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            Buscar
+          </button>
+
+        </div>
+
+        <div class="tabla-contenedor">
+
+          <table>
+            <thead>
+              <tr>
+                <th>Obra</th>
+                <th>Cliente</th>
+                <th>Fecha de inicio</th>
+                <th>Fecha prevista</th>
+                <th>Presupuesto</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+
+            <tbody id="tablaReporteObras">
+
+              <tr>
+                <td colspan="6">
+                  Los datos se cargarán próximamente.
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+
+        </div>
+
+      </div>
+
+      <!-- =====================================
+           REPORTE INVENTARIO
+      ====================================== -->
+
+      <div class="contenido-reporte" id="reporte-inventario">
+
+        <div class="titulo-reporte">
+          <div>
+            <h2>
+              <i class="fa-solid fa-boxes-stacked"></i>
+              Reporte de inventario
+            </h2>
+
+            <p>
+              Consulta las existencias y movimientos de materiales.
+            </p>
+          </div>
+        </div>
+
+        <div class="filtros-reporte">
+
+          <div class="campo-filtro">
+            <label for="buscarMaterial">Buscar material</label>
+
+            <input
+              type="text"
+              id="buscarMaterial"
+              placeholder="Nombre del material..."
+            >
+          </div>
+
+          <div class="campo-filtro">
+            <label for="filtroStock">Disponibilidad</label>
+
+            <select id="filtroStock">
+
+              <option value="">Todos</option>
+              <option value="disponible">Con stock</option>
+              <option value="bajo">Stock bajo</option>
+              <option value="agotado">Agotado</option>
+
+            </select>
+          </div>
+
+          <button class="btn-principal" id="btnBuscarMateriales">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            Buscar
+          </button>
+
+        </div>
+
+        <div class="tabla-contenedor">
+
+          <table>
+            <thead>
+              <tr>
+                <th>Material</th>
+                <th>Unidad</th>
+                <th>Stock actual</th>
+                <th>Entradas</th>
+                <th>Salidas</th>
+                <th>Disponibilidad</th>
+              </tr>
+            </thead>
+
+            <tbody id="tablaReporteInventario">
+
+              <tr>
+                <td colspan="6">
+                  Los datos se cargarán próximamente.
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- LIBRERÍAS PARA GENERAR PDF -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- JAVASCRIPT DEL MÓDULO -->
+
+  <script src="/js/reportes.js"></script>
+
+</body>
+</html>
