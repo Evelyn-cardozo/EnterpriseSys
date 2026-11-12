@@ -4,16 +4,47 @@
 // ========================================
 
 document.addEventListener("DOMContentLoaded", () => {
-  const tablaMateriales = document.getElementById("tablaMateriales");
-  const totalMateriales = document.getElementById("totalMateriales");
-  const stockBajo = document.getElementById("stockBajo");
-  const buscarMaterial = document.getElementById("buscarMaterial");
-  const btnNuevoMaterial = document.getElementById("btnNuevoMaterial");
-  const mensajeInventario = document.getElementById("mensajeInventario");
 
   const API = "/materiales";
 
+  // ========================================
+  // ELEMENTOS DEL HTML
+  // ========================================
+
+  const $ = id => document.getElementById(id);
+
+  const tablaMateriales = $("tablaMateriales");
+  const totalMateriales = $("totalMateriales");
+  const stockBajo = $("stockBajo");
+  const buscarMaterial = $("buscarMaterial");
+  const mensajeInventario = $("mensajeInventario");
+
+  const tablaSolicitudes = $("tablaSolicitudes");
+  const buscarSolicitud = $("buscarSolicitud");
+  const filtroEstadoSolicitud = $("filtroEstadoSolicitud");
+  const mensajeSolicitudes = $("mensajeSolicitudes");
+
+  const tablaHistorial = $("tablaHistorial");
+  const buscarHistorial = $("buscarHistorial");
+  const mensajeHistorial = $("mensajeHistorial");
+
+  const tablaMovimientos = $("tablaMovimientos");
+  const buscarMovimiento = $("buscarMovimiento");
+  const filtroTipoMovimiento = $("filtroTipoMovimiento");
+  const mensajeMovimientos = $("mensajeMovimientos");
+
+  const modalMaterial = $("modalMaterial");
+  const modalDetalle = $("modalDetalleSolicitud");
+  const modalEntrada = $("modalEntrada");
+
+  const formMaterial = $("formMaterial");
+  const formEntrada = $("formEntrada");
+
   let materiales = [];
+  let solicitudes = [];
+  let movimientos = [];
+
+  let materialEditando = null;
 
   // ========================================
   // ESTILOS COMPLEMENTARIOS
@@ -22,7 +53,52 @@ document.addEventListener("DOMContentLoaded", () => {
   const estilos = document.createElement("style");
 
   estilos.textContent = `
-    .estado-stock {
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: rgba(16,42,67,.55);
+      overflow-y: auto;
+    }
+
+    .modal.visible {
+      display: flex !important;
+    }
+
+    .modal-contenido {
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 25px;
+      background: white;
+      border-radius: 10px;
+    }
+
+    .modal-amplio {
+      max-width: 850px;
+    }
+
+    .modal-encabezado {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .btn-cerrar {
+      border: none;
+      background: transparent;
+      font-size: 26px;
+      cursor: pointer;
+    }
+
+    .estado-stock,
+    .estado-solicitud {
       display: inline-block;
       padding: 5px 9px;
       border-radius: 5px;
@@ -45,160 +121,117 @@ document.addEventListener("DOMContentLoaded", () => {
       background: #fff0f0;
     }
 
-    .modal-inventario {
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
+    .estado-pendiente {
+      color: #a16207;
+      background: #fef3c7;
+    }
+
+    .estado-aprobada {
+      color: #1d4ed8;
+      background: #dbeafe;
+    }
+
+    .estado-parcial {
+      color: #7c3aed;
+      background: #ede9fe;
+    }
+
+    .estado-entregada {
+      color: #16803c;
+      background: #dcfce7;
+    }
+
+    .estado-rechazada {
+      color: #c62828;
+      background: #fee2e2;
+    }
+
+    .acciones-solicitud {
       display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      background: rgba(16, 42, 67, 0.55);
+      flex-wrap: wrap;
+      gap: 6px;
     }
 
-    .modal-inventario.oculto {
-      display: none !important;
-    }
-
-    .contenido-modal-inventario {
-      width: 100%;
-      max-width: 600px;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 25px;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
-    }
-
-    .encabezado-modal-inventario {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 15px;
-      margin-bottom: 22px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid #dce3ec;
-    }
-
-    .encabezado-modal-inventario h2 {
-      margin: 0;
-      color: #102a43;
-      font-size: 21px;
-    }
-
-    .cerrar-modal-inventario {
-      padding: 5px 10px;
-      background: transparent;
-      color: #64748b;
+    .acciones-solicitud button {
+      padding: 7px 9px;
       border: none;
-      font-size: 25px;
+      border-radius: 5px;
       cursor: pointer;
+      font-size: 12px;
     }
 
-    .formulario-material {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
+    .btn-modificar,
+    .btn-ver {
+      background: #e8eff8;
+      color: #17365d;
     }
 
-    .formulario-material .campo-completo {
-      grid-column: 1 / -1;
+    .btn-aprobar {
+      background: #dcfce7;
+      color: #166534;
     }
 
-    .formulario-material label {
-      display: block;
-      margin-bottom: 7px;
-      color: #243047;
-      font-size: 13px;
-      font-weight: 600;
+    .btn-rechazar {
+      background: #fee2e2;
+      color: #b91c1c;
     }
 
-    .formulario-material input,
-    .formulario-material textarea {
+    .btn-entregar {
+      background: #ede9fe;
+      color: #6d28d9;
+    }
+
+    .detalle-solicitud {
       width: 100%;
-      padding: 11px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      font-family: Arial, sans-serif;
-      font-size: 14px;
+      border-collapse: collapse;
+      margin: 15px 0;
     }
 
-    .formulario-material input:focus,
-    .formulario-material textarea:focus {
-      outline: none;
-      border-color: #17365d;
-      box-shadow: 0 0 0 3px rgba(23, 54, 93, 0.1);
+    .detalle-solicitud th,
+    .detalle-solicitud td {
+      padding: 10px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+      font-size: 13px;
     }
 
-    .formulario-material input:disabled {
-      background: #e9edf3;
-      color: #64748b;
+    .detalle-solicitud input {
+      width: 85px;
+      padding: 7px;
+    }
+
+    .informacion-solicitud {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .informacion-solicitud p {
+      padding: 9px;
+      background: #f4f7fb;
+      border-radius: 5px;
+    }
+
+    .mensaje-error {
+      color: #c62828;
+    }
+
+    .mensaje-exito {
+      color: #16803c;
+    }
+
+    button:disabled {
+      opacity: .6;
       cursor: not-allowed;
     }
 
-    .formulario-material textarea {
-      min-height: 80px;
-      resize: vertical;
-    }
-
-    .botones-formulario-material {
-      grid-column: 1 / -1;
-      display: flex;
-      justify-content: flex-end;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .botones-formulario-material button {
-      padding: 11px 16px;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-guardar-material {
-      background: #17365d;
-      color: white;
-    }
-
-    .btn-guardar-material:hover {
-      background: #244a73;
-    }
-
-    .btn-cancelar-material {
-      background: #e9edf3;
-      color: #243047;
-    }
-
-    .tabla-contenedor .btn-modificar {
-      padding: 7px 10px;
-      border: none;
-      border-radius: 5px;
-      background: #e8eff8;
-      color: #17365d;
-      cursor: pointer;
-    }
-
-    .tabla-contenedor .btn-modificar:hover {
-      background: #d8e5f5;
-    }
-
-    @media (max-width: 500px) {
-      .formulario-material {
+    @media(max-width:500px) {
+      .informacion-solicitud {
         grid-template-columns: 1fr;
       }
 
-      .formulario-material .campo-completo,
-      .botones-formulario-material {
-        grid-column: 1;
-      }
-
-      .contenido-modal-inventario {
-        padding: 18px;
+      .modal-contenido {
+        padding: 16px;
       }
     }
   `;
@@ -206,185 +239,40 @@ document.addEventListener("DOMContentLoaded", () => {
   document.head.appendChild(estilos);
 
   // ========================================
-  // CREAR FORMULARIO MODAL
-  // ========================================
-
-  const modal = document.createElement("div");
-
-  modal.className = "modal-inventario oculto";
-  modal.id = "modalInventario";
-
-  modal.innerHTML = `
-    <div
-      class="contenido-modal-inventario"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="tituloFormularioMaterial"
-    >
-      <div class="encabezado-modal-inventario">
-        <h2 id="tituloFormularioMaterial">Nuevo material</h2>
-
-        <button
-          type="button"
-          class="cerrar-modal-inventario"
-          id="cerrarModalInventario"
-          aria-label="Cerrar formulario"
-        >
-          &times;
-        </button>
-      </div>
-
-      <form id="formularioMaterial" class="formulario-material">
-
-        <div class="campo-completo">
-          <label for="nombreMaterial">Nombre del material *</label>
-          <input
-            type="text"
-            id="nombreMaterial"
-            name="nombre"
-            maxlength="150"
-            required
-          >
-        </div>
-
-        <div class="campo-completo">
-          <label for="descripcionMaterial">Descripción</label>
-          <textarea
-            id="descripcionMaterial"
-            name="descripcion"
-            maxlength="500"
-          ></textarea>
-        </div>
-
-        <div>
-          <label for="precioMaterial">Precio actual (Gs.) *</label>
-          <input
-            type="number"
-            id="precioMaterial"
-            name="precio_actual"
-            min="0"
-            step="1"
-            required
-          >
-        </div>
-
-        <div>
-          <label for="stockMaterial">Stock actual *</label>
-          <input
-            type="number"
-            id="stockMaterial"
-            name="stock_actual"
-            min="0"
-            step="1"
-            required
-          >
-        </div>
-
-        <div>
-          <label for="stockMinimoMaterial">Stock mínimo *</label>
-          <input
-            type="number"
-            id="stockMinimoMaterial"
-            name="stock_minimo"
-            min="0"
-            step="1"
-            required
-          >
-        </div>
-
-        <div>
-          <label for="ubicacionMaterial">Ubicación</label>
-          <input
-            type="text"
-            id="ubicacionMaterial"
-            name="ubicacion_fisica"
-            maxlength="150"
-          >
-        </div>
-
-        <div class="botones-formulario-material">
-          <button
-            type="button"
-            class="btn-cancelar-material"
-            id="cancelarFormularioMaterial"
-          >
-            Cancelar
-          </button>
-
-          <button
-            type="submit"
-            class="btn-guardar-material"
-            id="guardarMaterial"
-          >
-            Guardar material
-          </button>
-        </div>
-
-      </form>
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-
-  const formulario = document.getElementById("formularioMaterial");
-
-  const tituloFormulario = document.getElementById(
-    "tituloFormularioMaterial"
-  );
-
-  const guardarMaterial = document.getElementById("guardarMaterial");
-
-  const campoStock = document.getElementById("stockMaterial");
-
-  let materialEditando = null;
-
-  // ========================================
   // FUNCIONES AUXILIARES
   // ========================================
 
   function escaparHTML(valor) {
-    return String(valor ?? "").replace(/[&<>"']/g, (caracter) => {
-      const caracteres = {
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-      };
-
-      return caracteres[caracter];
-    });
+    return String(valor ?? "").replace(/[&<>"']/g, caracter => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[caracter]);
   }
 
-  function mostrarMensaje(texto, tipo = "") {
-    mensajeInventario.textContent = texto;
-    mensajeInventario.className = tipo;
+  function mostrarMensaje(elemento, texto, tipo = "") {
+    if (!elemento) return;
+
+    elemento.textContent = texto;
+    elemento.className = `mensaje ${tipo}`.trim();
   }
 
   function formatearPrecio(valor) {
-    return Number(valor || 0).toLocaleString("es-PY", {
-      maximumFractionDigits: 0
-    }) + " Gs.";
+    return Number(valor || 0).toLocaleString("es-PY") + " Gs.";
   }
 
-  function obtenerDatos(respuesta) {
-    if (Array.isArray(respuesta)) {
-      return respuesta;
+  function formatearFecha(fecha) {
+    if (!fecha) return "Sin fecha";
+
+    const valor = new Date(fecha);
+
+    if (Number.isNaN(valor.getTime())) {
+      return escaparHTML(fecha);
     }
 
-    if (Array.isArray(respuesta.materiales)) {
-      return respuesta.materiales;
-    }
-
-    if (Array.isArray(respuesta.data)) {
-      return respuesta.data;
-    }
-
-    if (Array.isArray(respuesta.resultado)) {
-      return respuesta.resultado;
-    }
-
-    return [];
+    return valor.toLocaleString("es-PY");
   }
 
   async function procesarRespuesta(respuesta) {
@@ -401,156 +289,286 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (!respuesta.ok) {
-      throw new Error(
+      const error = new Error(
         resultado.mensaje ||
         resultado.error ||
         `Error del servidor (${respuesta.status})`
       );
+
+      error.status = respuesta.status;
+
+      throw error;
     }
 
     return resultado;
   }
 
+  function obtenerDatos(resultado) {
+    if (Array.isArray(resultado)) return resultado;
+
+    if (!resultado || typeof resultado !== "object") {
+      return [];
+    }
+
+    for (const propiedad of [
+      "materiales",
+      "solicitudes",
+      "movimientos",
+      "detalles",
+      "data",
+      "resultado"
+    ]) {
+      if (Array.isArray(resultado[propiedad])) {
+        return resultado[propiedad];
+      }
+    }
+
+    return [];
+  }
+
+  async function solicitar(url, opciones = {}) {
+    const respuesta = await fetch(url, opciones);
+    return procesarRespuesta(respuesta);
+  }
+
+  function obtenerEstadoVisual(solicitud) {
+    if (solicitud.estado === "Aprobada") {
+      const detalles = solicitud.detalles || [];
+
+      const tieneEntrega = detalles.some(item =>
+        Number(item.cantidad_entregada) > 0
+      );
+
+      if (tieneEntrega) {
+        const completo = detalles.every(item =>
+          Number(item.cantidad_entregada) >=
+          Number(item.cantidad_aprobada)
+        );
+
+        return completo ? "Entregada" : "Parcial";
+      }
+    }
+
+    return solicitud.estado;
+  }
+
+  function claseEstado(estado) {
+    return {
+      Pendiente: "estado-pendiente",
+      Aprobada: "estado-aprobada",
+      Parcial: "estado-parcial",
+      Entregada: "estado-entregada",
+      Rechazada: "estado-rechazada"
+    }[estado] || "";
+  }
+
+  function abrirModal(modal) {
+    modal?.classList.add("visible");
+    modal?.setAttribute("aria-hidden", "false");
+  }
+
+  function cerrarModal(modal) {
+    modal?.classList.remove("visible");
+    modal?.setAttribute("aria-hidden", "true");
+  }
+
   // ========================================
-  // CARGAR MATERIALES
+  // MANEJO DE PERMISOS DE MOVIMIENTOS
+  // ========================================
+
+  function ocultarSeccionMovimientos() {
+    const seccion = $("seccionMovimientos");
+
+    if (seccion) {
+      seccion.style.display = "none";
+    }
+
+    const botonEntrada = $("btnRegistrarEntrada");
+    const botonActualizar = $("btnActualizarMovimientos");
+
+    if (botonEntrada) botonEntrada.style.display = "none";
+    if (botonActualizar) botonActualizar.style.display = "none";
+
+    movimientos = [];
+  }
+
+  // ========================================
+  // MATERIALES: MODAL
+  // ========================================
+
+  function abrirFormularioMaterial(material = null) {
+    if (!formMaterial) return;
+
+    materialEditando = material
+      ? material.id_material
+      : null;
+
+    formMaterial.reset();
+
+    $("nombreMaterial").value = material?.nombre || "";
+    $("descripcionMaterial").value = material?.descripcion || "";
+    $("precioMaterial").value = material?.precio_actual ?? "";
+    $("stockMaterial").value = material?.stock_actual ?? "";
+    $("stockMinimoMaterial").value = material?.stock_minimo ?? "";
+    $("ubicacionMaterial").value = material?.ubicacion_fisica || "";
+
+    $("stockMaterial").disabled = Boolean(material);
+
+    $("tituloModalMaterial").textContent = material
+      ? "Modificar material"
+      : "Nuevo material";
+
+    abrirModal(modalMaterial);
+  }
+
+  function cerrarFormularioMaterial() {
+    cerrarModal(modalMaterial);
+    formMaterial?.reset();
+
+    if ($("stockMaterial")) {
+      $("stockMaterial").disabled = false;
+    }
+
+    materialEditando = null;
+  }
+
+  $("btnNuevoMaterial")?.addEventListener("click", () => {
+    abrirFormularioMaterial();
+  });
+
+  $("cerrarModalMaterial")?.addEventListener(
+    "click",
+    cerrarFormularioMaterial
+  );
+
+  $("cancelarMaterial")?.addEventListener(
+    "click",
+    cerrarFormularioMaterial
+  );
+
+  modalMaterial?.addEventListener("click", evento => {
+    if (evento.target === modalMaterial) {
+      cerrarFormularioMaterial();
+    }
+  });
+
+  // ========================================
+  // MATERIALES: CARGAR
   // ========================================
 
   async function cargarMateriales() {
-    tablaMateriales.innerHTML = `
-      <tr>
-        <td colspan="7">Cargando materiales...</td>
-      </tr>
-    `;
+    if (!tablaMateriales) return;
+
+    tablaMateriales.innerHTML =
+      `<tr><td colspan="7">Cargando materiales...</td></tr>`;
 
     try {
-      const respuesta = await fetch(API);
-
-      const resultado = await procesarRespuesta(respuesta);
+      const resultado = await solicitar(API);
 
       materiales = obtenerDatos(resultado);
 
       actualizarResumen();
       mostrarMateriales();
+      actualizarSelectMateriales();
+
+      mostrarMensaje(mensajeInventario, "");
 
     } catch (error) {
       console.error("Error al cargar materiales:", error);
 
-      tablaMateriales.innerHTML = `
-        <tr>
-          <td colspan="7">
-            No se pudieron cargar los materiales.
-          </td>
-        </tr>
-      `;
+      tablaMateriales.innerHTML =
+        `<tr><td colspan="7">No se pudieron cargar los materiales.</td></tr>`;
 
       mostrarMensaje(
-        error.message || "Error al conectar con el servidor.",
+        mensajeInventario,
+        error.message,
         "mensaje-error"
       );
     }
   }
 
-  // ========================================
-  // ACTUALIZAR TARJETAS DE RESUMEN
-  // ========================================
-
   function actualizarResumen() {
-    totalMateriales.textContent = materiales.length;
+    if (totalMateriales) {
+      totalMateriales.textContent = materiales.length;
+    }
 
-    const cantidadStockBajo = materiales.filter((material) => {
-      return Number(material.stock_actual) <=
-        Number(material.stock_minimo);
-    }).length;
-
-    stockBajo.textContent = cantidadStockBajo;
+    if (stockBajo) {
+      stockBajo.textContent = materiales.filter(material =>
+        Number(material.stock_actual) <= Number(material.stock_minimo)
+      ).length;
+    }
   }
 
-  // ========================================
-  // MOSTRAR MATERIALES EN LA TABLA
-  // ========================================
-
   function mostrarMateriales() {
-    const busqueda = buscarMaterial.value
+    if (!tablaMateriales) return;
+
+    const busqueda = (buscarMaterial?.value || "")
       .trim()
       .toLocaleLowerCase("es");
 
-    const filtrados = materiales.filter((material) => {
-      const nombre = String(material.nombre || "")
-        .toLocaleLowerCase("es");
+    const filtrados = materiales.filter(material => {
+      const texto = [
+        material.id_material,
+        material.nombre,
+        material.descripcion,
+        material.ubicacion_fisica
+      ].join(" ").toLocaleLowerCase("es");
 
-      const ubicacion = String(material.ubicacion_fisica || "")
-        .toLocaleLowerCase("es");
-
-      const id = String(material.id_material || "");
-
-      return nombre.includes(busqueda) ||
-        ubicacion.includes(busqueda) ||
-        id.includes(busqueda);
+      return texto.includes(busqueda);
     });
 
-    if (filtrados.length === 0) {
+    if (!filtrados.length) {
       tablaMateriales.innerHTML = `
         <tr>
           <td colspan="7">
-            ${
-              materiales.length === 0
-                ? "Todavía no hay materiales registrados."
-                : "No se encontraron materiales."
-            }
+            ${materiales.length
+              ? "No se encontraron materiales."
+              : "Todavía no hay materiales registrados."}
           </td>
         </tr>
       `;
-
       return;
     }
 
-    tablaMateriales.innerHTML = filtrados.map((material) => {
+    tablaMateriales.innerHTML = filtrados.map(material => {
       const stock = Number(material.stock_actual || 0);
       const minimo = Number(material.stock_minimo || 0);
 
-      let claseStock = "stock-normal";
-      let textoStock = "Normal";
+      let clase = "stock-normal";
+      let estado = "Normal";
 
       if (stock <= 0) {
-        claseStock = "stock-agotado";
-        textoStock = "Agotado";
+        clase = "stock-agotado";
+        estado = "Agotado";
       } else if (stock <= minimo) {
-        claseStock = "stock-bajo";
-        textoStock = "Stock bajo";
+        clase = "stock-bajo";
+        estado = "Stock bajo";
       }
 
       return `
         <tr>
-          <td>${escaparHTML(material.id_material)}</td>
+          <td>${escaparHTML(material.nombre)}</td>
 
-          <td>
-            <strong>${escaparHTML(material.nombre)}</strong>
-          </td>
+          <td>${escaparHTML(material.descripcion || "Sin descripción")}</td>
 
           <td>${formatearPrecio(material.precio_actual)}</td>
 
           <td>
-            <span class="estado-stock ${claseStock}">
-              ${stock} · ${textoStock}
+            <span class="estado-stock ${clase}">
+              ${stock} - ${estado}
             </span>
           </td>
 
           <td>${minimo}</td>
 
-          <td>
-            ${escaparHTML(material.ubicacion_fisica || "Sin ubicación")}
-          </td>
+          <td>${escaparHTML(material.ubicacion_fisica || "Sin ubicación")}</td>
 
           <td>
             <button
               type="button"
               class="btn-modificar"
-              data-accion="editar"
-              data-id="${escaparHTML(material.id_material)}"
-              title="Modificar material"
-              aria-label="Modificar ${escaparHTML(material.nombre)}"
-            >
-              <i class="fa-solid fa-pen"></i>
+              data-accion="editar-material"
+              data-id="${escaparHTML(material.id_material)}">
               Modificar
             </button>
           </td>
@@ -559,254 +577,1090 @@ document.addEventListener("DOMContentLoaded", () => {
     }).join("");
   }
 
-  // ========================================
-  // ABRIR FORMULARIO
-  // ========================================
+  buscarMaterial?.addEventListener("input", mostrarMateriales);
 
-  function abrirFormulario(material = null) {
-    materialEditando = material
-      ? material.id_material
-      : null;
-
-    formulario.reset();
-
-    // IMPORTANTE:
-    // El stock solo se puede establecer al registrar.
-    // Al modificar, queda bloqueado.
-    campoStock.disabled = Boolean(material);
-
-    tituloFormulario.textContent = material
-      ? "Modificar material"
-      : "Nuevo material";
-
-    guardarMaterial.textContent = material
-      ? "Guardar cambios"
-      : "Guardar material";
-
-    if (material) {
-      document.getElementById("nombreMaterial").value =
-        material.nombre || "";
-
-      document.getElementById("descripcionMaterial").value =
-        material.descripcion || "";
-
-      document.getElementById("precioMaterial").value =
-        material.precio_actual ?? 0;
-
-      campoStock.value = material.stock_actual ?? 0;
-
-      document.getElementById("stockMinimoMaterial").value =
-        material.stock_minimo ?? 0;
-
-      document.getElementById("ubicacionMaterial").value =
-        material.ubicacion_fisica || "";
-    }
-
-    modal.classList.remove("oculto");
-
-    document.getElementById("nombreMaterial").focus();
-  }
-
-  // ========================================
-  // CERRAR FORMULARIO
-  // ========================================
-
-  function cerrarFormulario() {
-    modal.classList.add("oculto");
-
-    formulario.reset();
-
-    materialEditando = null;
-
-    campoStock.disabled = false;
-
-    guardarMaterial.disabled = false;
-    guardarMaterial.textContent = "Guardar material";
-  }
-
-  // ========================================
-  // EVENTOS DEL MODAL
-  // ========================================
-
-  btnNuevoMaterial.addEventListener("click", () => {
-    abrirFormulario();
-  });
-
-  document.getElementById("cerrarModalInventario")
-    .addEventListener("click", cerrarFormulario);
-
-  document.getElementById("cancelarFormularioMaterial")
-    .addEventListener("click", cerrarFormulario);
-
-  modal.addEventListener("click", (evento) => {
-    if (evento.target === modal) {
-      cerrarFormulario();
-    }
-  });
-
-  document.addEventListener("keydown", (evento) => {
-    if (
-      evento.key === "Escape" &&
-      !modal.classList.contains("oculto")
-    ) {
-      cerrarFormulario();
-    }
-  });
-
-  // ========================================
-  // BUSCAR MATERIALES
-  // ========================================
-
-  buscarMaterial.addEventListener("input", mostrarMateriales);
-
-  // ========================================
-  // MODIFICAR MATERIAL
-  // ========================================
-
-  tablaMateriales.addEventListener("click", (evento) => {
-    const boton = evento.target.closest('[data-accion="editar"]');
-
-    if (!boton) {
-      return;
-    }
-
-    const id = boton.dataset.id;
-
-    const material = materiales.find((item) => {
-      return String(item.id_material) === String(id);
-    });
-
-    if (material) {
-      abrirFormulario(material);
-    }
-  });
-
-  // ========================================
-  // GUARDAR MATERIAL NUEVO O MODIFICADO
-  // ========================================
-
-  formulario.addEventListener("submit", async (evento) => {
-    evento.preventDefault();
-
-    const datos = Object.fromEntries(
-      new FormData(formulario).entries()
+  tablaMateriales?.addEventListener("click", evento => {
+    const boton = evento.target.closest(
+      '[data-accion="editar-material"]'
     );
 
-    // Limpiar campos de texto
-    datos.nombre = datos.nombre.trim();
-    datos.descripcion = datos.descripcion.trim();
-    datos.ubicacion_fisica = datos.ubicacion_fisica.trim();
+    if (!boton) return;
 
-    // Validar campos obligatorios antes de convertir
-    if (
-      datos.nombre === "" ||
-      datos.precio_actual === "" ||
-      datos.stock_minimo === "" ||
-      (materialEditando === null && datos.stock_actual === "")
-    ) {
-      mostrarMensaje(
-        "Completá todos los campos obligatorios.",
-        "mensaje-error"
-      );
-      return;
-    }
+    const material = materiales.find(item =>
+      String(item.id_material) === String(boton.dataset.id)
+    );
 
-    // Convertir valores numéricos
-    datos.precio_actual = Number(datos.precio_actual);
-    datos.stock_minimo = Number(datos.stock_minimo);
+    if (material) abrirFormularioMaterial(material);
+  });
+
+  // ========================================
+  // MATERIALES: GUARDAR
+  // ========================================
+
+  formMaterial?.addEventListener("submit", async evento => {
+    evento.preventDefault();
+
+    const datos = {
+      nombre: $("nombreMaterial").value.trim(),
+      descripcion: $("descripcionMaterial").value.trim(),
+      precio_actual: Number($("precioMaterial").value),
+      stock_minimo: Number($("stockMinimoMaterial").value),
+      ubicacion_fisica: $("ubicacionMaterial").value.trim()
+    };
 
     const editando = materialEditando !== null;
 
-    // El stock solo se envía cuando se registra un material.
     if (!editando) {
-      datos.stock_actual = Number(datos.stock_actual);
-    } else {
-      delete datos.stock_actual;
+      datos.stock_actual = Number($("stockMaterial").value);
     }
 
-    // Validar precio
-    if (
-      !Number.isFinite(datos.precio_actual) ||
-      datos.precio_actual < 0
-    ) {
+    if (!datos.nombre) {
       mostrarMensaje(
-        "El precio debe ser un número válido y no negativo.",
+        mensajeInventario,
+        "El nombre es obligatorio.",
         "mensaje-error"
       );
       return;
     }
 
-    // Validar stock mínimo
-    if (
-      !Number.isInteger(datos.stock_minimo) ||
-      datos.stock_minimo < 0
-    ) {
+    if (!Number.isFinite(datos.precio_actual) || datos.precio_actual < 0) {
       mostrarMensaje(
-        "El stock mínimo debe ser un número entero no negativo.",
+        mensajeInventario,
+        "El precio no es válido.",
         "mensaje-error"
       );
       return;
     }
 
-    // Validar stock inicial
+    if (!Number.isInteger(datos.stock_minimo) || datos.stock_minimo < 0) {
+      mostrarMensaje(
+        mensajeInventario,
+        "El stock mínimo no es válido.",
+        "mensaje-error"
+      );
+      return;
+    }
+
     if (
       !editando &&
-      (
-        !Number.isInteger(datos.stock_actual) ||
-        datos.stock_actual < 0
-      )
+      (!Number.isInteger(datos.stock_actual) || datos.stock_actual < 0)
     ) {
       mostrarMensaje(
-        "El stock inicial debe ser un número entero no negativo.",
+        mensajeInventario,
+        "El stock inicial no es válido.",
         "mensaje-error"
       );
       return;
     }
 
-    const url = editando
-      ? `${API}/${encodeURIComponent(materialEditando)}`
-      : API;
+    const boton = formMaterial.querySelector('[type="submit"]');
 
-    const metodo = editando ? "PUT" : "POST";
-
-    guardarMaterial.disabled = true;
-    guardarMaterial.textContent = "Guardando...";
+    if (boton) boton.disabled = true;
 
     try {
-      const respuesta = await fetch(url, {
-        method: metodo,
+      const url = editando
+        ? `${API}/${encodeURIComponent(materialEditando)}`
+        : API;
+
+      const resultado = await solicitar(url, {
+        method: editando ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify(datos)
       });
 
-      const resultado = await procesarRespuesta(respuesta);
-
-      cerrarFormulario();
+      cerrarFormularioMaterial();
 
       mostrarMensaje(
-        resultado.mensaje ||
-          (editando
-            ? "Material modificado correctamente."
-            : "Material registrado correctamente."),
+        mensajeInventario,
+        resultado.mensaje || "Material guardado correctamente.",
         "mensaje-exito"
       );
 
       await cargarMateriales();
 
     } catch (error) {
-      console.error("Error al guardar material:", error);
-
       mostrarMensaje(
-        error.message || "No se pudo guardar el material.",
+        mensajeInventario,
+        error.message,
         "mensaje-error"
       );
-
     } finally {
-      guardarMaterial.disabled = false;
-      guardarMaterial.textContent = "Guardar material";
+      if (boton) boton.disabled = false;
     }
+  });
+
+  // ========================================
+  // SOLICITUDES: CARGAR
+  // ========================================
+
+  async function cargarSolicitudes() {
+    if (!tablaSolicitudes) return;
+
+    tablaSolicitudes.innerHTML =
+      `<tr><td colspan="7">Cargando solicitudes...</td></tr>`;
+
+    try {
+      const resultado = await solicitar(`${API}/solicitudes`);
+
+      solicitudes = obtenerDatos(resultado);
+
+      await Promise.all(solicitudes.map(async solicitud => {
+        if (solicitud.estado !== "Aprobada") return;
+
+        try {
+          solicitud.detalles = await obtenerDetalleSolicitud(
+            solicitud.id_solicitud
+          );
+        } catch (error) {
+          console.error("Error al obtener detalle:", error);
+        }
+      }));
+
+      mostrarSolicitudes();
+      mostrarHistorial();
+
+      mostrarMensaje(mensajeSolicitudes, "");
+
+    } catch (error) {
+      console.error("Error al cargar solicitudes:", error);
+
+      tablaSolicitudes.innerHTML =
+        `<tr><td colspan="7">No se pudieron cargar las solicitudes.</td></tr>`;
+
+      mostrarMensaje(
+        mensajeSolicitudes,
+        error.message,
+        "mensaje-error"
+      );
+    }
+  }
+
+  // ========================================
+  // SOLICITUDES: MOSTRAR
+  // ========================================
+
+  function mostrarSolicitudes() {
+    if (!tablaSolicitudes) return;
+
+    const busqueda = (buscarSolicitud?.value || "")
+      .trim()
+      .toLocaleLowerCase("es");
+
+    const estadoFiltro = filtroEstadoSolicitud?.value || "";
+
+    const filtradas = solicitudes.filter(solicitud => {
+      const estado = obtenerEstadoVisual(solicitud);
+
+      const texto = [
+        solicitud.id_solicitud,
+        solicitud.nombre_obra,
+        solicitud.usuario_solicitante,
+        estado
+      ].join(" ").toLocaleLowerCase("es");
+
+      return texto.includes(busqueda) &&
+        (!estadoFiltro || estado === estadoFiltro);
+    });
+
+    if (!filtradas.length) {
+      tablaSolicitudes.innerHTML = `
+        <tr>
+          <td colspan="7">
+            ${solicitudes.length
+              ? "No se encontraron solicitudes."
+              : "Todavía no hay solicitudes registradas."}
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tablaSolicitudes.innerHTML = filtradas.map(solicitud => {
+      const estado = obtenerEstadoVisual(solicitud);
+      const id = escaparHTML(solicitud.id_solicitud);
+
+      let acciones = `
+        <button
+          type="button"
+          class="btn-ver"
+          data-accion="ver"
+          data-id="${id}">
+          Ver
+        </button>
+      `;
+
+      if (solicitud.estado === "Pendiente") {
+        acciones += `
+          <button
+            type="button"
+            class="btn-aprobar"
+            data-accion="aprobar"
+            data-id="${id}">
+            Aprobar
+          </button>
+
+          <button
+            type="button"
+            class="btn-rechazar"
+            data-accion="rechazar"
+            data-id="${id}">
+            Rechazar
+          </button>
+        `;
+      }
+
+      if (solicitud.estado === "Aprobada") {
+        acciones += `
+          <button
+            type="button"
+            class="btn-entregar"
+            data-accion="entregar"
+            data-id="${id}">
+            Entregar
+          </button>
+        `;
+      }
+
+      return `
+        <tr>
+          <td>${id}</td>
+          <td>${escaparHTML(solicitud.nombre_obra)}</td>
+          <td>${escaparHTML(solicitud.usuario_solicitante)}</td>
+          <td>${formatearFecha(solicitud.fecha_solicitud)}</td>
+          <td>${escaparHTML(solicitud.cantidad_items ?? "-")}</td>
+
+          <td>
+            <span class="estado-solicitud ${claseEstado(estado)}">
+              ${escaparHTML(estado)}
+            </span>
+          </td>
+
+          <td>
+            <div class="acciones-solicitud">${acciones}</div>
+          </td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  buscarSolicitud?.addEventListener("input", mostrarSolicitudes);
+
+  filtroEstadoSolicitud?.addEventListener(
+    "change",
+    mostrarSolicitudes
+  );
+
+  $("btnActualizarSolicitudes")?.addEventListener(
+    "click",
+    cargarSolicitudes
+  );
+
+  // ========================================
+  // DETALLE DE SOLICITUD
+  // ========================================
+
+  async function obtenerDetalleSolicitud(id) {
+    const resultado = await solicitar(
+      `${API}/solicitudes/${encodeURIComponent(id)}`
+    );
+
+    return obtenerDatos(resultado);
+  }
+
+  function mostrarDetalleEnModal(id, detalles, modo = "ver") {
+    if (!detalles.length) {
+      throw new Error("La solicitud no contiene materiales.");
+    }
+
+    const primero = detalles[0];
+
+    const filas = detalles.map(item => {
+      let cantidad = "";
+
+      if (modo === "aprobar") {
+        cantidad = `
+          <input
+            type="number"
+            class="cantidad-aprobada"
+            data-id="${escaparHTML(item.id_detalle)}"
+            min="0"
+            max="${escaparHTML(item.cantidad_solicitada)}"
+            value="${escaparHTML(item.cantidad_solicitada)}">
+        `;
+      } else if (modo === "entregar") {
+        const restante = Math.max(
+          0,
+          Number(item.cantidad_aprobada) -
+          Number(item.cantidad_entregada)
+        );
+
+        cantidad = `
+          <input
+            type="number"
+            class="cantidad-entregada"
+            data-id="${escaparHTML(item.id_detalle)}"
+            min="0"
+            max="${restante}"
+            value="${restante}">
+        `;
+      } else {
+        cantidad = escaparHTML(item.cantidad_solicitada);
+      }
+
+      return `
+        <tr>
+          <td>${escaparHTML(item.nombre_material)}</td>
+          <td>${escaparHTML(item.cantidad_solicitada)}</td>
+          <td>${escaparHTML(item.cantidad_aprobada)}</td>
+          <td>${escaparHTML(item.cantidad_entregada)}</td>
+          ${modo !== "ver" ? `<td>${cantidad}</td>` : ""}
+        </tr>
+      `;
+    }).join("");
+
+    $("contenidoDetalleSolicitud").innerHTML = `
+      <div class="informacion-solicitud">
+        <p><strong>Obra:</strong> ${escaparHTML(primero.nombre_obra)}</p>
+        <p><strong>Solicitante:</strong> ${escaparHTML(primero.usuario_solicitante)}</p>
+        <p><strong>Fecha:</strong> ${formatearFecha(primero.fecha_solicitud)}</p>
+        <p><strong>Estado:</strong> ${escaparHTML(primero.estado)}</p>
+      </div>
+
+      <table class="detalle-solicitud">
+        <thead>
+          <tr>
+            <th>Material</th>
+            <th>Solicitado</th>
+            <th>Aprobado</th>
+            <th>Entregado</th>
+            ${modo !== "ver"
+              ? `<th>${modo === "aprobar" ? "Autorizar" : "Entregar ahora"}</th>`
+              : ""}
+          </tr>
+        </thead>
+        <tbody>${filas}</tbody>
+      </table>
+    `;
+
+    // El título es opcional para evitar errores si no existe en el HTML.
+    const titulo = $("tituloModalDetalle");
+
+    if (titulo) {
+      titulo.textContent = `Solicitud N.º ${id}`;
+    }
+
+    abrirModal(modalDetalle);
+
+    return primero;
+  }
+
+  function cerrarDetalle() {
+    cerrarModal(modalDetalle);
+
+    if ($("contenidoDetalleSolicitud")) {
+      $("contenidoDetalleSolicitud").innerHTML = "";
+    }
+  }
+
+  $("cerrarModalDetalle")?.addEventListener(
+    "click",
+    cerrarDetalle
+  );
+
+  modalDetalle?.addEventListener("click", evento => {
+    if (evento.target === modalDetalle) {
+      cerrarDetalle();
+    }
+  });
+
+  // ========================================
+  // SOLICITUDES: VER
+  // ========================================
+
+  async function verSolicitud(id) {
+    try {
+      const detalles = await obtenerDetalleSolicitud(id);
+
+      mostrarDetalleEnModal(id, detalles, "ver");
+
+    } catch (error) {
+      mostrarMensaje(
+        mensajeSolicitudes,
+        error.message,
+        "mensaje-error"
+      );
+    }
+  }
+
+  // ========================================
+  // SOLICITUDES: APROBAR
+  // ========================================
+
+  async function aprobarSolicitud(id) {
+    try {
+      const detalles = await obtenerDetalleSolicitud(id);
+
+      mostrarDetalleEnModal(id, detalles, "aprobar");
+
+      const boton = document.createElement("button");
+
+      boton.type = "button";
+      boton.className = "btn btn-principal";
+      boton.textContent = "Confirmar aprobación";
+
+      $("contenidoDetalleSolicitud").appendChild(boton);
+
+      boton.addEventListener("click", async () => {
+        const entradas = [
+          ...modalDetalle.querySelectorAll(".cantidad-aprobada")
+        ];
+
+        const detalleAprobado = [];
+
+        for (const entrada of entradas) {
+          const cantidad = Number(entrada.value);
+          const maximo = Number(entrada.max);
+
+          if (
+            !Number.isInteger(cantidad) ||
+            cantidad < 0 ||
+            cantidad > maximo
+          ) {
+            mostrarMensaje(
+              mensajeSolicitudes,
+              "Verificá las cantidades aprobadas.",
+              "mensaje-error"
+            );
+            return;
+          }
+
+          detalleAprobado.push({
+            id_detalle: Number(entrada.dataset.id),
+            cantidad_aprobada: cantidad
+          });
+        }
+
+        // No permitir aprobar todos los materiales con cantidad cero.
+        if (!detalleAprobado.some(item =>
+          item.cantidad_aprobada > 0
+        )) {
+          mostrarMensaje(
+            mensajeSolicitudes,
+            "Debés aprobar al menos un material con cantidad mayor a cero.",
+            "mensaje-error"
+          );
+          return;
+        }
+
+        boton.disabled = true;
+
+        try {
+          const resultado = await solicitar(
+            `${API}/solicitudes/${encodeURIComponent(id)}/aprobar`,
+            {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                detalles: detalleAprobado
+              })
+            }
+          );
+
+          cerrarDetalle();
+
+          mostrarMensaje(
+            mensajeSolicitudes,
+            resultado.mensaje || "Solicitud aprobada correctamente.",
+            "mensaje-exito"
+          );
+
+          await cargarSolicitudes();
+          await cargarMateriales();
+
+        } catch (error) {
+          mostrarMensaje(
+            mensajeSolicitudes,
+            error.message,
+            "mensaje-error"
+          );
+
+          boton.disabled = false;
+        }
+      });
+
+    } catch (error) {
+      mostrarMensaje(
+        mensajeSolicitudes,
+        error.message,
+        "mensaje-error"
+      );
+    }
+  }
+
+  // ========================================
+  // SOLICITUDES: RECHAZAR
+  // ========================================
+
+  async function rechazarSolicitud(id) {
+    if (!window.confirm(`¿Rechazar la solicitud N.º ${id}?`)) {
+      return;
+    }
+
+    try {
+      const resultado = await solicitar(
+        `${API}/solicitudes/${encodeURIComponent(id)}/rechazar`,
+        {
+          method: "PATCH"
+        }
+      );
+
+      mostrarMensaje(
+        mensajeSolicitudes,
+        resultado.mensaje || "Solicitud rechazada.",
+        "mensaje-exito"
+      );
+
+      await cargarSolicitudes();
+
+    } catch (error) {
+      mostrarMensaje(
+        mensajeSolicitudes,
+        error.message,
+        "mensaje-error"
+      );
+    }
+  }
+
+  // ========================================
+  // SOLICITUDES: ENTREGAR
+  // ========================================
+
+  async function entregarSolicitud(id) {
+    try {
+      const detalles = await obtenerDetalleSolicitud(id);
+
+      const pendientes = detalles.filter(item =>
+        Number(item.cantidad_aprobada) >
+        Number(item.cantidad_entregada)
+      );
+
+      if (!pendientes.length) {
+        throw new Error(
+          "No hay cantidades pendientes de entrega."
+        );
+      }
+
+      mostrarDetalleEnModal(id, pendientes, "entregar");
+
+      const boton = document.createElement("button");
+
+      boton.type = "button";
+      boton.className = "btn btn-principal";
+      boton.textContent = "Registrar entrega";
+
+      $("contenidoDetalleSolicitud").appendChild(boton);
+
+      boton.addEventListener("click", async () => {
+        const entradas = [
+          ...modalDetalle.querySelectorAll(".cantidad-entregada")
+        ];
+
+        const entregas = [];
+
+        for (const entrada of entradas) {
+          const cantidad = Number(entrada.value);
+          const maximo = Number(entrada.max);
+
+          if (
+            !Number.isInteger(cantidad) ||
+            cantidad < 0 ||
+            cantidad > maximo
+          ) {
+            mostrarMensaje(
+              mensajeSolicitudes,
+              "Verificá las cantidades que se entregarán.",
+              "mensaje-error"
+            );
+            return;
+          }
+
+          if (cantidad > 0) {
+            entregas.push({
+              id_detalle: Number(entrada.dataset.id),
+              cantidad_entregada: cantidad
+            });
+          }
+        }
+
+        if (!entregas.length) {
+          mostrarMensaje(
+            mensajeSolicitudes,
+            "Ingresá al menos una cantidad para entregar.",
+            "mensaje-error"
+          );
+          return;
+        }
+
+        boton.disabled = true;
+
+        try {
+          const resultado = await solicitar(
+            `${API}/solicitudes/${encodeURIComponent(id)}/entregar`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                detalles: entregas
+              })
+            }
+          );
+
+          cerrarDetalle();
+
+          mostrarMensaje(
+            mensajeSolicitudes,
+            resultado.mensaje || "Entrega registrada correctamente.",
+            "mensaje-exito"
+          );
+
+          await cargarSolicitudes();
+          await cargarMateriales();
+          await cargarMovimientos();
+
+        } catch (error) {
+          mostrarMensaje(
+            mensajeSolicitudes,
+            error.message,
+            "mensaje-error"
+          );
+
+          boton.disabled = false;
+        }
+      });
+
+    } catch (error) {
+      mostrarMensaje(
+        mensajeSolicitudes,
+        error.message,
+        "mensaje-error"
+      );
+    }
+  }
+
+  // ========================================
+  // EVENTOS DE SOLICITUDES
+  // ========================================
+
+  tablaSolicitudes?.addEventListener("click", evento => {
+    const boton = evento.target.closest("[data-accion]");
+
+    if (!boton) return;
+
+    const id = boton.dataset.id;
+
+    switch (boton.dataset.accion) {
+      case "ver":
+        verSolicitud(id);
+        break;
+
+      case "aprobar":
+        aprobarSolicitud(id);
+        break;
+
+      case "rechazar":
+        rechazarSolicitud(id);
+        break;
+
+      case "entregar":
+        entregarSolicitud(id);
+        break;
+    }
+  });
+
+  // ========================================
+  // HISTORIAL DE SOLICITUDES
+  // ========================================
+
+  function mostrarHistorial() {
+    if (!tablaHistorial) return;
+
+    const busqueda = (buscarHistorial?.value || "")
+      .trim()
+      .toLocaleLowerCase("es");
+
+    const procesadas = solicitudes.filter(solicitud => {
+      const estado = obtenerEstadoVisual(solicitud);
+
+      return estado !== "Pendiente";
+    });
+
+    const filtradas = procesadas.filter(solicitud => {
+      const estado = obtenerEstadoVisual(solicitud);
+
+      const texto = [
+        solicitud.id_solicitud,
+        solicitud.nombre_obra,
+        solicitud.usuario_solicitante,
+        estado
+      ].join(" ").toLocaleLowerCase("es");
+
+      return texto.includes(busqueda);
+    });
+
+    if (!filtradas.length) {
+      tablaHistorial.innerHTML = `
+        <tr>
+          <td colspan="6">
+            ${procesadas.length
+              ? "No se encontraron solicitudes."
+              : "Todavía no hay solicitudes procesadas."}
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tablaHistorial.innerHTML = filtradas.map(solicitud => {
+      const estado = obtenerEstadoVisual(solicitud);
+
+      return `
+        <tr>
+          <td>${escaparHTML(solicitud.id_solicitud)}</td>
+          <td>${escaparHTML(solicitud.nombre_obra)}</td>
+          <td>${escaparHTML(solicitud.usuario_solicitante)}</td>
+          <td>${formatearFecha(solicitud.fecha_solicitud)}</td>
+
+          <td>
+            <span class="estado-solicitud ${claseEstado(estado)}">
+              ${escaparHTML(estado)}
+            </span>
+          </td>
+
+          <td>
+            <button
+              type="button"
+              class="btn-ver"
+              data-id="${escaparHTML(solicitud.id_solicitud)}">
+              Consultar
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  buscarHistorial?.addEventListener("input", mostrarHistorial);
+
+  $("btnActualizarHistorial")?.addEventListener(
+    "click",
+    cargarSolicitudes
+  );
+
+  tablaHistorial?.addEventListener("click", evento => {
+    const boton = evento.target.closest("[data-id]");
+
+    if (!boton) return;
+
+    verSolicitud(boton.dataset.id);
+  });
+
+  // ========================================
+  // MOVIMIENTOS: CARGAR
+  // ========================================
+
+  async function cargarMovimientos() {
+    if (!tablaMovimientos) return;
+
+    tablaMovimientos.innerHTML =
+      `<tr><td colspan="7">Cargando movimientos...</td></tr>`;
+
+    try {
+      const resultado = await solicitar(`${API}/movimientos`);
+
+      movimientos = obtenerDatos(resultado);
+
+      mostrarMovimientos();
+
+      mostrarMensaje(mensajeMovimientos, "");
+
+    } catch (error) {
+      console.error("Error al cargar movimientos:", error);
+
+      if (error.status === 403) {
+        ocultarSeccionMovimientos();
+        return;
+      }
+
+      tablaMovimientos.innerHTML = `
+        <tr>
+          <td colspan="7">No se pudieron cargar los movimientos.</td>
+        </tr>
+      `;
+
+      mostrarMensaje(
+        mensajeMovimientos,
+        error.message,
+        "mensaje-error"
+      );
+    }
+  }
+
+  // ========================================
+  // MOVIMIENTOS: MOSTRAR
+  // ========================================
+
+  function mostrarMovimientos() {
+    if (!tablaMovimientos) return;
+
+    const busqueda = (buscarMovimiento?.value || "")
+      .trim()
+      .toLocaleLowerCase("es");
+
+    const tipoFiltro = filtroTipoMovimiento?.value || "";
+
+    const filtrados = movimientos.filter(movimiento => {
+      const texto = [
+        movimiento.id_movimiento,
+        movimiento.nombre_material,
+        movimiento.usuario,
+        movimiento.nombre_obra,
+        movimiento.tipo_movimiento,
+        movimiento.motivo
+      ].join(" ").toLocaleLowerCase("es");
+
+      return texto.includes(busqueda) &&
+        (!tipoFiltro ||
+          movimiento.tipo_movimiento === tipoFiltro);
+    });
+
+    if (!filtrados.length) {
+      tablaMovimientos.innerHTML = `
+        <tr>
+          <td colspan="7">
+            ${movimientos.length
+              ? "No se encontraron movimientos."
+              : "Todavía no hay movimientos registrados."}
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tablaMovimientos.innerHTML = filtrados.map(movimiento => {
+      const entrada = movimiento.tipo_movimiento === "Entrada";
+
+      return `
+        <tr>
+          <td>${escaparHTML(movimiento.nombre_material)}</td>
+
+          <td>
+            <span class="estado-solicitud ${
+              entrada ? "estado-entregada" : "estado-rechazada"
+            }">
+              ${escaparHTML(movimiento.tipo_movimiento)}
+            </span>
+          </td>
+
+          <td>${escaparHTML(movimiento.cantidad)}</td>
+
+          <td>${escaparHTML(movimiento.nombre_obra || "Sin obra")}</td>
+
+          <td>${escaparHTML(movimiento.usuario || "Sin usuario")}</td>
+
+          <td>${formatearFecha(movimiento.fecha_movimiento)}</td>
+
+          <td>${escaparHTML(movimiento.motivo || "Sin motivo")}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  buscarMovimiento?.addEventListener(
+    "input",
+    mostrarMovimientos
+  );
+
+  filtroTipoMovimiento?.addEventListener(
+    "change",
+    mostrarMovimientos
+  );
+
+  $("btnActualizarMovimientos")?.addEventListener(
+    "click",
+    cargarMovimientos
+  );
+
+  // ========================================
+  // ENTRADAS: ACTUALIZAR SELECT
+  // ========================================
+
+  function actualizarSelectMateriales() {
+    const select = $("materialEntrada");
+
+    if (!select) return;
+
+    const seleccionado = select.value;
+
+    select.innerHTML = `
+      <option value="">Seleccione un material</option>
+
+      ${materiales.map(material => `
+        <option value="${escaparHTML(material.id_material)}">
+          ${escaparHTML(material.nombre)}
+          (Stock: ${escaparHTML(material.stock_actual)})
+        </option>
+      `).join("")}
+    `;
+
+    if (seleccionado) {
+      select.value = seleccionado;
+    }
+  }
+
+  // ========================================
+  // ENTRADAS: ABRIR Y CERRAR MODAL
+  // ========================================
+
+  function abrirEntrada() {
+    if (!materiales.length) {
+      mostrarMensaje(
+        mensajeMovimientos,
+        "Primero debés registrar un material.",
+        "mensaje-error"
+      );
+      return;
+    }
+
+    formEntrada?.reset();
+
+    actualizarSelectMateriales();
+    abrirModal(modalEntrada);
+  }
+
+  function cerrarEntrada() {
+    cerrarModal(modalEntrada);
+    formEntrada?.reset();
+  }
+
+  $("btnRegistrarEntrada")?.addEventListener(
+    "click",
+    abrirEntrada
+  );
+
+  $("cerrarModalEntrada")?.addEventListener(
+    "click",
+    cerrarEntrada
+  );
+
+  $("cancelarEntrada")?.addEventListener(
+    "click",
+    cerrarEntrada
+  );
+
+  modalEntrada?.addEventListener("click", evento => {
+    if (evento.target === modalEntrada) {
+      cerrarEntrada();
+    }
+  });
+
+  // ========================================
+  // ENTRADAS: REGISTRAR
+  // ========================================
+
+  formEntrada?.addEventListener("submit", async evento => {
+    evento.preventDefault();
+
+    const id_material = Number($("materialEntrada").value);
+    const cantidad = Number($("cantidadEntrada").value);
+    const motivo = $("motivoEntrada").value.trim();
+
+    if (!Number.isInteger(id_material) || id_material <= 0) {
+      mostrarMensaje(
+        mensajeMovimientos,
+        "Seleccioná un material.",
+        "mensaje-error"
+      );
+      return;
+    }
+
+    if (!Number.isInteger(cantidad) || cantidad <= 0) {
+      mostrarMensaje(
+        mensajeMovimientos,
+        "La cantidad debe ser un entero positivo.",
+        "mensaje-error"
+      );
+      return;
+    }
+
+    if (!motivo) {
+      mostrarMensaje(
+        mensajeMovimientos,
+        "Ingresá el motivo de la entrada.",
+        "mensaje-error"
+      );
+      return;
+    }
+
+    const boton = formEntrada.querySelector('[type="submit"]');
+
+    if (!boton) return;
+
+    boton.disabled = true;
+    boton.textContent = "Registrando...";
+
+    try {
+      const resultado = await solicitar(`${API}/movimientos`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id_material,
+          tipo_movimiento: "Entrada",
+          cantidad,
+          motivo
+        })
+      });
+
+      cerrarEntrada();
+
+      mostrarMensaje(
+        mensajeMovimientos,
+        resultado.mensaje || "Entrada registrada correctamente.",
+        "mensaje-exito"
+      );
+
+      await cargarMateriales();
+      await cargarMovimientos();
+
+    } catch (error) {
+      mostrarMensaje(
+        mensajeMovimientos,
+        error.message,
+        "mensaje-error"
+      );
+    } finally {
+      boton.disabled = false;
+      boton.textContent = "Registrar entrada";
+    }
+  });
+
+  // ========================================
+  // CERRAR MODALES CON ESCAPE
+  // ========================================
+
+  document.addEventListener("keydown", evento => {
+    if (evento.key !== "Escape") return;
+
+    cerrarFormularioMaterial();
+    cerrarDetalle();
+    cerrarEntrada();
   });
 
   // ========================================
@@ -814,5 +1668,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   cargarMateriales();
+  cargarSolicitudes();
+  cargarMovimientos();
 
 });

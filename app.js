@@ -217,6 +217,20 @@ app.get(
     }
 );
 // ========================================
+// CONFIGURACIÓN
+// TODOS LOS ROLES
+// ========================================
+
+app.get(
+  "/configuracion-pagina",
+  protegerPagina(1, 2, 3),
+  (req, res) => {
+    res.sendFile(
+      path.join(__dirname, "views", "configuracion.html")
+    );
+  }
+);
+// ========================================
 // INICIAR SERVIDOR
 // ========================================
 
