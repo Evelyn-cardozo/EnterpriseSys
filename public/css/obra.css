@@ -1,4 +1,3 @@
-
 /* =========================================
    CONFIGURACIÓN GENERAL
 ========================================= */
@@ -53,7 +52,6 @@ textarea {
   font-family: inherit;
 }
 
-
 /* =========================================
    ENCABEZADO
 ========================================= */
@@ -61,13 +59,11 @@ textarea {
 .encabezado {
   background: var(--azul-oscuro);
   color: var(--blanco);
-
   padding: 20px 5%;
 
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   gap: 20px;
 }
 
@@ -108,7 +104,6 @@ textarea {
   border-color: var(--blanco);
 }
 
-
 /* =========================================
    CONTENEDOR PRINCIPAL
 ========================================= */
@@ -116,10 +111,8 @@ textarea {
 .contenedor {
   width: 90%;
   max-width: 1600px;
-
   margin: 30px auto;
 }
-
 
 /* =========================================
    TÍTULOS DE SECCIÓN
@@ -129,7 +122,6 @@ textarea {
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   gap: 20px;
   margin-bottom: 24px;
 }
@@ -161,14 +153,12 @@ textarea {
   font-size: 13px;
 }
 
-
 /* =========================================
    TARJETAS
 ========================================= */
 
 .tarjeta {
   background: var(--blanco);
-
   padding: 24px;
   margin-bottom: 24px;
 
@@ -181,7 +171,6 @@ textarea {
 .tarjeta h3 {
   margin-top: 0;
   margin-bottom: 7px;
-
   color: var(--azul-oscuro);
   font-size: 19px;
 }
@@ -189,7 +178,6 @@ textarea {
 .tarjeta h4 {
   margin-top: 0;
   margin-bottom: 12px;
-
   color: var(--azul-oscuro);
   font-size: 16px;
 }
@@ -197,7 +185,6 @@ textarea {
 .tarjeta p {
   color: var(--texto-secundario);
 }
-
 
 /* =========================================
    SUBSECCIONES
@@ -222,7 +209,6 @@ textarea {
   margin-top: 0;
 }
 
-
 /* =========================================
    BÚSQUEDA
 ========================================= */
@@ -240,23 +226,19 @@ input[type="search"] {
   width: 100%;
 }
 
-
 /* =========================================
    FORMULARIOS Y CAMPOS
 ========================================= */
 
 .form-grid {
   display: grid;
-
   grid-template-columns: repeat(2, minmax(0, 1fr));
-
   gap: 20px;
 }
 
 .campo {
   display: flex;
   flex-direction: column;
-
   min-width: 0;
 }
 
@@ -274,7 +256,6 @@ input,
 select,
 textarea {
   width: 100%;
-
   margin-top: 7px;
   padding: 11px 13px;
 
@@ -285,7 +266,6 @@ textarea {
   color: var(--texto);
 
   font-size: 14px;
-
   outline: none;
 
   transition:
@@ -329,13 +309,10 @@ textarea:focus {
 .mensaje-error {
   display: block;
   min-height: 0;
-
   color: var(--rojo);
   font-size: 12px;
-
   margin-top: 5px;
 }
-
 
 /* =========================================
    BOTONES GENERALES
@@ -373,7 +350,6 @@ button:disabled {
   box-shadow: none;
 }
 
-
 /* Botón principal */
 
 .btn-principal {
@@ -382,15 +358,12 @@ button:disabled {
   border-color: var(--azul-principal);
 }
 
-.btn-principal:hover {
+.btn-principal:hover:not(:disabled) {
   background: var(--azul-oscuro);
   border-color: var(--azul-oscuro);
-
   transform: translateY(-1px);
-
   box-shadow: 0 4px 10px rgba(23, 54, 93, 0.2);
 }
-
 
 /* Botón secundario */
 
@@ -400,11 +373,10 @@ button:disabled {
   border-color: #cbd3df;
 }
 
-.btn-secundario:hover {
+.btn-secundario:hover:not(:disabled) {
   background: #d3dce9;
   border-color: #a9b8cc;
 }
-
 
 /* Modificar */
 
@@ -412,7 +384,6 @@ button:disabled {
   background: var(--azul-claro);
   color: #1d4f91;
   border-color: #b8d2f5;
-
   white-space: nowrap;
 }
 
@@ -421,14 +392,12 @@ button:disabled {
   color: var(--blanco);
 }
 
-
 /* Desactivar */
 
 .btn-desactivar {
   background: var(--rojo-fondo);
   color: var(--rojo);
   border-color: #f5b7b1;
-
   white-space: nowrap;
 }
 
@@ -437,14 +406,12 @@ button:disabled {
   color: var(--blanco);
 }
 
-
 /* Activar */
 
 .btn-activar {
   background: var(--verde-fondo);
   color: var(--verde);
   border-color: #a7f3d0;
-
   white-space: nowrap;
 }
 
@@ -452,7 +419,6 @@ button:disabled {
   background: #15803d;
   color: var(--blanco);
 }
-
 
 /* =========================================
    ACCIONES DE FORMULARIOS
@@ -462,7 +428,6 @@ button:disabled {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-
   gap: 10px;
   margin-top: 20px;
 }
@@ -470,10 +435,8 @@ button:disabled {
 .acciones-seccion {
   display: flex;
   justify-content: flex-start;
-
   margin-top: 17px;
 }
-
 
 /* =========================================
    ELEMENTOS OCULTOS
@@ -483,7 +446,6 @@ button:disabled {
   display: none !important;
 }
 
-
 /* =========================================
    ENCABEZADOS DE TABLAS
 ========================================= */
@@ -492,7 +454,6 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   gap: 15px;
   margin-bottom: 18px;
 }
@@ -504,20 +465,16 @@ button:disabled {
 
 .tabla-encabezado p {
   margin: 0;
-
   font-size: 13px;
   color: var(--texto-secundario);
 }
 
 .tabla-encabezado span {
   color: var(--texto-secundario);
-
   font-size: 13px;
   font-weight: 600;
-
   white-space: nowrap;
 }
-
 
 /* =========================================
    TABLAS
@@ -535,32 +492,24 @@ button:disabled {
 
 table {
   width: 100%;
-
   border-collapse: collapse;
-
   min-width: 1050px;
-
   font-size: 13px;
 }
 
 th,
 td {
   padding: 13px 14px;
-
   border-bottom: 1px solid var(--borde-claro);
-
   text-align: left;
   vertical-align: middle;
 }
 
 th {
   background: #f3f6fa;
-
   color: #42516a;
-
   font-weight: 700;
   white-space: nowrap;
-
   border-bottom: 1px solid var(--borde);
 }
 
@@ -585,14 +534,11 @@ td button {
   margin: 2px;
 }
 
-/* Mensajes de tablas vacías */
-
 td[colspan] {
   padding: 22px;
   text-align: center;
   color: var(--texto-secundario);
 }
-
 
 /* =========================================
    ESTADOS DE LAS OBRAS
@@ -623,20 +569,15 @@ td[colspan] {
 .estado-finalizada,
 .estado-cancelada {
   display: inline-block;
-
   padding: 5px 10px;
-
   border-radius: 20px;
-
   font-size: 12px;
   font-weight: 700;
-
   white-space: nowrap;
 }
 
-
 /* =========================================
-   ESTADOS GENERALES DE SOLICITUDES
+   ESTADOS DE SOLICITUDES
 ========================================= */
 
 .estado-pendiente {
@@ -653,8 +594,7 @@ td[colspan] {
 }
 
 .estado-rechazada,
-.estado-rechazado,
-.estado-cancelada {
+.estado-rechazado {
   background: #fde8e8;
   color: #b42318;
 }
@@ -667,17 +607,12 @@ td[colspan] {
 .estado-rechazada,
 .estado-rechazado {
   display: inline-block;
-
   padding: 5px 9px;
-
   border-radius: 15px;
-
   font-size: 12px;
   font-weight: 700;
-
   white-space: nowrap;
 }
-
 
 /* =========================================
    PROGRESO DE OBRA
@@ -689,23 +624,17 @@ td[colspan] {
 
 .progreso-barra {
   height: 8px;
-
   background: #e5e9f0;
-
   border-radius: 10px;
   overflow: hidden;
-
   margin-bottom: 5px;
 }
 
 .progreso-relleno {
   height: 100%;
-
   background: var(--azul-principal);
-
   border-radius: 10px;
 }
-
 
 /* =========================================
    PESTAÑAS DE MATERIALES
@@ -714,11 +643,10 @@ td[colspan] {
 .pestanas-materiales {
   display: flex;
   align-items: center;
-
+  flex-wrap: wrap;
   gap: 8px;
 
   margin: 24px 0;
-
   padding-bottom: 12px;
 
   border-bottom: 1px solid var(--borde);
@@ -727,13 +655,9 @@ td[colspan] {
 .pestana-material {
   background: #edf1f6;
   color: #526178;
-
   border: 1px solid transparent;
-
   padding: 11px 17px;
-
   border-radius: 7px;
-
   white-space: nowrap;
 }
 
@@ -745,10 +669,12 @@ td[colspan] {
 .pestana-material.activa {
   background: var(--azul-principal);
   color: var(--blanco);
-
   border-color: var(--azul-principal);
-
   box-shadow: 0 2px 6px rgba(36, 91, 158, 0.2);
+}
+
+.pestana-material:disabled {
+  display: none;
 }
 
 .contenido-pestana {
@@ -759,6 +685,36 @@ td[colspan] {
   color: var(--azul-oscuro);
 }
 
+/* =========================================
+   AVISO DE SOLO LECTURA
+========================================= */
+
+.aviso-solo-lectura {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  padding: 14px 16px;
+  margin: 16px 0;
+
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid var(--azul-principal);
+  border-radius: 7px;
+
+  color: #1e40af;
+  font-size: 13px;
+}
+
+.aviso-solo-lectura p {
+  margin: 0;
+  color: inherit;
+}
+
+.aviso-solo-lectura strong {
+  display: block;
+  margin-bottom: 3px;
+}
 
 /* =========================================
    MENSAJES DEL SISTEMA
@@ -768,25 +724,16 @@ td[colspan] {
 #mensajePersonal,
 #mensajeMateriales {
   min-height: 0;
-
   font-size: 13px;
   font-weight: 500;
-
   margin-top: 12px;
 }
 
-#mensaje {
-  color: var(--azul-principal);
-}
-
-#mensajePersonal {
-  color: var(--azul-principal);
-}
-
+#mensaje,
+#mensajePersonal,
 #mensajeMateriales {
   color: var(--azul-principal);
 }
-
 
 /* =========================================
    ACCIONES CON ICONOS
@@ -796,9 +743,7 @@ td[colspan] {
   display: flex;
   align-items: center;
   justify-content: center;
-
   gap: 7px;
-
   white-space: nowrap;
 }
 
@@ -825,16 +770,13 @@ td[colspan] {
 .btn-icono:hover {
   background: #d9e6f2;
   color: #1769aa;
-
   border-color: #a9bdd7;
-
   transform: translateY(-2px);
 }
 
 .btn-icono svg {
   width: 17px;
   height: 17px;
-
   stroke-width: 2;
 }
 
@@ -846,13 +788,10 @@ td[colspan] {
   white-space: nowrap;
 }
 
-/* Acciones de las tablas de personal */
-
 #tablaPersonal .acciones,
 #tablaRegistroPersonal .acciones {
   justify-content: center;
 }
-
 
 /* =========================================
    SCROLL DE TABLAS
@@ -876,13 +815,11 @@ td[colspan] {
   background: #8499b3;
 }
 
-
 /* =========================================
    RESPONSIVE: TABLETS
 ========================================= */
 
 @media (max-width: 1000px) {
-
   .contenedor {
     width: 94%;
   }
@@ -898,20 +835,16 @@ td[colspan] {
   .tabla-encabezado {
     align-items: flex-start;
   }
-
 }
-
 
 /* =========================================
    RESPONSIVE: CELULARES
 ========================================= */
 
 @media (max-width: 700px) {
-
   .encabezado {
     flex-direction: column;
     align-items: flex-start;
-
     padding: 20px 5%;
   }
 
@@ -932,7 +865,6 @@ td[colspan] {
   .titulo-seccion {
     flex-direction: column;
     align-items: flex-start;
-
     gap: 15px;
   }
 
@@ -946,9 +878,7 @@ td[colspan] {
 
   .tarjeta {
     padding: 17px;
-
     margin-bottom: 17px;
-
     border-radius: 9px;
   }
 
@@ -964,7 +894,6 @@ td[colspan] {
   .tabla-encabezado {
     flex-direction: column;
     align-items: flex-start;
-
     gap: 10px;
   }
 
@@ -983,9 +912,8 @@ td[colspan] {
 
   .pestanas-materiales {
     overflow-x: auto;
-
+    flex-wrap: nowrap;
     padding-bottom: 12px;
-
     align-items: stretch;
   }
 
@@ -1006,16 +934,13 @@ td[colspan] {
   .tabla-contenedor {
     margin-top: 12px;
   }
-
 }
-
 
 /* =========================================
    RESPONSIVE: CELULARES PEQUEÑOS
 ========================================= */
 
 @media (max-width: 400px) {
-
   .contenedor {
     width: 95%;
   }
@@ -1041,16 +966,13 @@ td[colspan] {
   button {
     font-size: 13px;
   }
-
 }
-
 
 /* =========================================
    ACCESIBILIDAD
 ========================================= */
 
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
@@ -1058,5 +980,4 @@ td[colspan] {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
-
 }

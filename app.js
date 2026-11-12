@@ -1,4 +1,3 @@
-
 const express = require("express");
 require("dotenv").config();
 const session = require("express-session");
@@ -46,7 +45,7 @@ app.use(
       sameSite: "lax",
       maxAge: 1000 * 60 * 60,
     },
-  })
+  }),
 );
 
 // ========================================
@@ -55,7 +54,6 @@ app.use(
 
 const protegerPagina = (...rolesPermitidos) => {
   return (req, res, next) => {
-
     // Verificar sesión
     if (!req.session || !req.session.usuario) {
       return res.redirect("/login");
@@ -86,52 +84,36 @@ app.get("/login", (req, res) => {
 // TODOS LOS ROLES
 // ========================================
 
-app.get(
-  "/inicio",
-  protegerPagina(1, 2, 3),
-  (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "inicio.html"));
-  }
-);
+app.get("/inicio", protegerPagina(1, 2, 3), (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "inicio.html"));
+});
 
 // ========================================
 // CLIENTES
 // SOLO GERENTE
 // ========================================
 
-app.get(
-  "/clientes-pagina",
-  protegerPagina(1),
-  (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "cliente.html"));
-  }
-);
+app.get("/clientes-pagina", protegerPagina(1), (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "cliente.html"));
+});
 
 // ========================================
 // OBRAS
 // GERENTE Y JEFE DE OBRA
 // ========================================
 
-app.get(
-  "/obras-pagina",
-  protegerPagina(1, 2),
-  (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "obra.html"));
-  }
-);
+app.get("/obras-pagina", protegerPagina(1, 2), (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "obra.html"));
+});
 
 // ========================================
 // INVENTARIO
 // LOS TRES ROLES
 // ========================================
 
-app.get(
-  "/inventario-pagina",
-  protegerPagina(1, 2, 3),
-  (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "inventario.html"));
-  }
-);
+app.get("/inventario-pagina", protegerPagina(1, 2, 3), (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "inventario.html"));
+});
 
 // ========================================
 // RUTA DE PRUEBA DE POSTGRESQL
@@ -145,7 +127,6 @@ app.get("/", async (req, res) => {
       mensaje: "Conexion exitosa con PostgreSQL",
       fecha: resultado.rows[0].now,
     });
-
   } catch (error) {
     console.error(error);
 
@@ -190,46 +171,31 @@ app.use("/materiales", inventarioRouters);
 // TODOS LOS ROLES
 // ========================================
 
-app.get(
-    "/reportes-pagina",
-    protegerPagina(1, 2, 3),
-    (req, res) => {
+app.get("/reportes-pagina", protegerPagina(1, 2, 3), (req, res) => {
+  const archivo = path.join(__dirname, "views", "reportes.html");
 
-        const archivo = path.join(
-            __dirname,
-            "views",
-            "reportes.html"
-        );
+  console.log("Solicitando página de reportes:", archivo);
 
-        console.log("Solicitando página de reportes:", archivo);
+  res.sendFile(archivo, (error) => {
+    if (error) {
+      console.error("Error al enviar reportes.html:", error);
 
-        res.sendFile(archivo, (error) => {
-            if (error) {
-                console.error("Error al enviar reportes.html:", error);
-
-                if (!res.headersSent) {
-                    res.status(error.statusCode || 500).send(
-                        "No se pudo cargar la página de reportes."
-                    );
-                }
-            }
-        });
+      if (!res.headersSent) {
+        res
+          .status(error.statusCode || 500)
+          .send("No se pudo cargar la página de reportes.");
+      }
     }
-);
+  });
+});
 // ========================================
 // CONFIGURACIÓN
 // TODOS LOS ROLES
 // ========================================
 
-app.get(
-  "/configuracion-pagina",
-  protegerPagina(1, 2, 3),
-  (req, res) => {
-    res.sendFile(
-      path.join(__dirname, "views", "configuracion.html")
-    );
-  }
-);
+app.get("/configuracion-pagina", protegerPagina(1, 2, 3), (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "configuracion.html"));
+});
 // ========================================
 // INICIAR SERVIDOR
 // ========================================

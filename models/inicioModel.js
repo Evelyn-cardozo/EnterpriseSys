@@ -1,4 +1,3 @@
-
 const pool = require("../Database/conexion.js");
 
 // ========================================
@@ -6,7 +5,6 @@ const pool = require("../Database/conexion.js");
 // ========================================
 
 const obtenerResumen = async (idRol, idUsuario) => {
-
   // GERENTE
   if (Number(idRol) === 1) {
     const resultado = await pool.query(`
@@ -36,7 +34,8 @@ const obtenerResumen = async (idRol, idUsuario) => {
 
   // JEFE DE OBRA
   if (Number(idRol) === 2) {
-    const resultado = await pool.query(`
+    const resultado = await pool.query(
+      `
       SELECT
         COUNT(*)::integer AS total_solicitudes,
 
@@ -58,7 +57,9 @@ const obtenerResumen = async (idRol, idUsuario) => {
 
       FROM solicitudes_materiales
       WHERE id_usuario_solicitante = $1
-    `, [idUsuario]);
+    `,
+      [idUsuario],
+    );
 
     return resultado.rows[0];
   }
@@ -89,16 +90,15 @@ const obtenerResumen = async (idRol, idUsuario) => {
   throw new Error("Rol de usuario no válido");
 };
 
-
 // ========================================
 // ACTIVIDADES RECIENTES
 // ========================================
 
 const listarActividades = async (idRol, idUsuario) => {
-
   // El jefe solamente consulta sus propias solicitudes.
   if (Number(idRol) === 2) {
-    const resultado = await pool.query(`
+    const resultado = await pool.query(
+      `
       SELECT
         'Solicitud' AS tipo,
         s.id_solicitud AS id_referencia,
@@ -124,7 +124,9 @@ const listarActividades = async (idRol, idUsuario) => {
 
       ORDER BY s.fecha_solicitud DESC
       LIMIT 8
-    `, [idUsuario]);
+    `,
+      [idUsuario],
+    );
 
     return resultado.rows;
   }
@@ -189,8 +191,7 @@ const listarActividades = async (idRol, idUsuario) => {
   return resultado.rows;
 };
 
-
 module.exports = {
   obtenerResumen,
-  listarActividades
+  listarActividades,
 };

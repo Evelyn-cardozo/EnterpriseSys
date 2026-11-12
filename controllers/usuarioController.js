@@ -1,4 +1,3 @@
-
 const bcrypt = require("bcrypt");
 const usuarioModel = require("../models/usuarioModel");
 
@@ -32,7 +31,7 @@ const login = async (req, res) => {
 
     const passwordValida = await bcrypt.compare(
       password,
-      usuario.password_hash
+      usuario.password_hash,
     );
 
     if (!passwordValida) {
@@ -63,7 +62,6 @@ const login = async (req, res) => {
         usuario: req.session.usuario,
       });
     });
-
   } catch (error) {
     console.error("Error en login:", error);
 
@@ -118,7 +116,6 @@ const listarUsuarios = async (req, res) => {
     const usuarios = await usuarioModel.listarUsuarios();
 
     return res.json({ usuarios });
-
   } catch (error) {
     console.error(error);
 
@@ -177,7 +174,6 @@ const crearUsuario = async (req, res) => {
       mensaje: "Usuario creado correctamente",
       usuario,
     });
-
   } catch (error) {
     console.error(error);
 
@@ -260,7 +256,6 @@ const modificarUsuario = async (req, res) => {
       mensaje: "Usuario actualizado correctamente",
       usuario,
     });
-
   } catch (error) {
     console.error(error);
 
@@ -311,7 +306,6 @@ const cambiarEstado = async (req, res) => {
       mensaje: "Estado actualizado correctamente",
       usuario,
     });
-
   } catch (error) {
     console.error(error);
 
@@ -357,7 +351,6 @@ const cambiarPassword = async (req, res) => {
     return res.json({
       mensaje: "Contraseña actualizada correctamente",
     });
-
   } catch (error) {
     console.error(error);
 

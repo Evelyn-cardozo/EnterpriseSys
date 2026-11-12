@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="es">
   <head>
@@ -16,59 +15,33 @@
   </head>
 
   <body>
-
-    <!-- ====================================== -->
-    <!-- ENCABEZADO                             -->
-    <!-- ====================================== -->
-
+    <!-- ENCABEZADO -->
     <header class="encabezado">
       <div class="encabezado-info">
         <h1>EnterpriseSys</h1>
         <p>Sistema de gestión para empresa eléctrica</p>
       </div>
 
-      <a href="/inicio" class="btn-volver">
-        Volver al inicio
-      </a>
+      <a href="/inicio" class="btn-volver"> Volver al inicio </a>
     </header>
 
-
     <main class="contenedor">
-
-      <!-- ====================================== -->
-      <!-- TÍTULO PRINCIPAL                       -->
-      <!-- ====================================== -->
-
+      <!-- TÍTULO PRINCIPAL -->
       <section class="titulo-seccion">
-
         <div>
           <h2>Gestión de obras</h2>
-
-          <p>
-            Registrá, consultá y administrá las obras de la empresa.
-          </p>
+          <p>Registrá, consultá y administrá las obras de la empresa.</p>
         </div>
 
-        <button
-          type="button"
-          id="btnNuevaObra"
-          class="btn-principal"
-        >
+        <button type="button" id="btnNuevaObra" class="btn-principal">
           + Nueva obra
         </button>
-
       </section>
 
-
-      <!-- ====================================== -->
-      <!-- BÚSQUEDA DE OBRAS                      -->
-      <!-- ====================================== -->
-
+      <!-- BÚSQUEDA -->
       <section class="tarjeta busqueda-seccion">
-
         <div class="campo">
           <label for="buscarObra">Buscar obra</label>
-
           <input
             type="search"
             id="buscarObra"
@@ -76,68 +49,29 @@
             autocomplete="off"
           />
         </div>
-
       </section>
 
-
-      <!-- ====================================== -->
-      <!-- FORMULARIO DE OBRAS                    -->
-      <!-- ====================================== -->
-
-      <section
-        id="formularioContenedor"
-        class="tarjeta oculto"
-      >
-
+      <!-- FORMULARIO DE OBRAS -->
+      <section id="formularioContenedor" class="tarjeta oculto">
         <div class="seccion-titulo">
           <div>
             <h3 id="tituloFormulario">Registrar obra</h3>
-
-            <p>
-              Completá los datos para registrar una nueva obra.
-            </p>
+            <p>Completá los datos para registrar una nueva obra.</p>
           </div>
         </div>
 
-
         <form id="formObra">
-
           <div class="form-grid">
-
-            <!-- Cliente -->
-
             <div class="campo campo-completo">
-
-              <label for="id_cliente">
-                Cliente *
-              </label>
-
-              <select
-                id="id_cliente"
-                name="id_cliente"
-                required
-              >
-                <option value="">
-                  Seleccioná un cliente
-                </option>
+              <label for="id_cliente">Cliente *</label>
+              <select id="id_cliente" name="id_cliente" required>
+                <option value="">Seleccioná un cliente</option>
               </select>
-
-              <small
-                id="errorCliente"
-                class="mensaje-error"
-              ></small>
-
+              <small id="errorCliente" class="mensaje-error"></small>
             </div>
 
-
-            <!-- Nombre -->
-
             <div class="campo">
-
-              <label for="nombre_obra">
-                Nombre de la obra *
-              </label>
-
+              <label for="nombre_obra">Nombre de la obra *</label>
               <input
                 type="text"
                 id="nombre_obra"
@@ -146,23 +80,13 @@
                 placeholder="Ej. Instalación eléctrica"
                 required
               />
-
-              <small
-                id="errorNombreObra"
-                class="mensaje-error"
-              ></small>
-
+              <small id="errorNombreObra" class="mensaje-error"></small>
             </div>
 
-
-            <!-- Presupuesto -->
-
             <div class="campo">
-
-              <label for="presupuesto_planificado">
-                Presupuesto planificado (Gs.) *
-              </label>
-
+              <label for="presupuesto_planificado"
+                >Presupuesto planificado (Gs.) *</label
+              >
               <input
                 type="number"
                 id="presupuesto_planificado"
@@ -172,120 +96,62 @@
                 placeholder="Ej. 15000000"
                 required
               />
-
-              <small
-                id="errorPresupuesto"
-                class="mensaje-error"
-              ></small>
-
+              <small id="errorPresupuesto" class="mensaje-error"></small>
             </div>
 
-
-            <!-- Fecha de inicio -->
-
             <div class="campo">
-
-              <label for="fecha_inicio">
-                Fecha de inicio *
-              </label>
-
+              <label for="fecha_inicio">Fecha de inicio *</label>
               <input
                 type="date"
                 id="fecha_inicio"
                 name="fecha_inicio"
                 required
               />
-
             </div>
 
-
-            <!-- Fecha de finalización -->
-
             <div class="campo">
-
-              <label for="fecha_fin_prevista">
-                Fecha de finalización prevista *
-              </label>
-
+              <label for="fecha_fin_prevista"
+                >Fecha de finalización prevista *</label
+              >
               <input
                 type="date"
                 id="fecha_fin_prevista"
                 name="fecha_fin_prevista"
                 required
               />
-
-              <small
-                id="errorFechas"
-                class="mensaje-error"
-              ></small>
-
+              <small id="errorFechas" class="mensaje-error"></small>
             </div>
-
           </div>
 
-
-          <p class="nota">
-            Los campos marcados con * son obligatorios.
-          </p>
-
+          <p class="nota">Los campos marcados con * son obligatorios.</p>
 
           <div class="acciones-formulario">
-
-            <button
-              type="button"
-              id="btnCancelar"
-              class="btn-secundario"
-            >
+            <button type="button" id="btnCancelar" class="btn-secundario">
               Cancelar
             </button>
 
-            <button
-              type="submit"
-              id="btnGuardarObra"
-              class="btn-principal"
-            >
+            <button type="submit" id="btnGuardarObra" class="btn-principal">
               Guardar obra
             </button>
-
           </div>
-
         </form>
-
       </section>
 
-
-      <!-- ====================================== -->
-      <!-- LISTADO DE OBRAS                       -->
-      <!-- ====================================== -->
-
+      <!-- LISTADO DE OBRAS -->
       <section class="tarjeta">
-
         <div class="tabla-encabezado">
-
           <div>
             <h3>Lista de obras</h3>
-
-            <p>
-              Obras registradas en el sistema.
-            </p>
+            <p>Obras registradas en el sistema.</p>
           </div>
 
           <span id="totalObras">0 obras</span>
-
         </div>
 
-
-        <p
-          id="mensaje"
-          role="status"
-          aria-live="polite"
-        ></p>
-
+        <p id="mensaje" role="status" aria-live="polite"></p>
 
         <div class="tabla-contenedor">
-
           <table>
-
             <thead>
               <tr>
                 <th>ID</th>
@@ -300,63 +166,30 @@
               </tr>
             </thead>
 
-
             <tbody id="tablaObras">
-
               <tr>
-                <td colspan="9">
-                  Cargando obras...
-                </td>
+                <td colspan="9">Cargando obras...</td>
               </tr>
-
             </tbody>
-
           </table>
-
         </div>
-
       </section>
 
-
-      <!-- ====================================== -->
-      <!-- PANEL DE MATERIALES                    -->
-      <!-- ====================================== -->
-
-      <section
-        id="panelMateriales"
-        class="tarjeta oculto"
-      >
-
-        <!-- Encabezado -->
-
+      <!-- PANEL DE MATERIALES -->
+      <section id="panelMateriales" class="tarjeta oculto">
         <div class="tabla-encabezado">
-
           <div>
-            <h3 id="tituloMateriales">
-              Materiales de la obra
-            </h3>
-
+            <h3 id="tituloMateriales">Materiales de la obra</h3>
             <p id="nombreObraMateriales"></p>
           </div>
 
-          <button
-            type="button"
-            id="btnCerrarMateriales"
-            class="btn-secundario"
-          >
+          <button type="button" id="btnCerrarMateriales" class="btn-secundario">
             Volver a obras
           </button>
-
         </div>
 
-
-        <!-- Pestañas -->
-
-        <nav
-          class="pestanas-materiales"
-          aria-label="Secciones de materiales"
-        >
-
+        <!-- PESTAÑAS -->
+        <nav class="pestanas-materiales" aria-label="Secciones de materiales">
           <button
             type="button"
             class="pestana-material activa"
@@ -386,57 +219,28 @@
           >
             Historial de entregas
           </button>
-
         </nav>
 
-
-        <!-- ====================================== -->
-        <!-- PESTAÑA: SOLICITAR MATERIALES          -->
-        <!-- ====================================== -->
-
-        <div
-          id="contenido-solicitar"
-          class="contenido-pestana"
-        >
-
+        <!-- SOLICITAR MATERIALES -->
+        <div id="contenido-solicitar" class="contenido-pestana">
           <div class="subseccion">
-
             <h4>Nueva solicitud de materiales</h4>
-
             <p>
-              Seleccioná materiales existentes en el inventario
-              e indicá las cantidades necesarias para esta obra.
+              Seleccioná materiales existentes en el inventario e indicá las
+              cantidades necesarias para esta obra.
             </p>
 
-
             <form id="formSolicitudMateriales">
-
               <div class="form-grid">
-
                 <div class="campo">
-
-                  <label for="materialSeleccionado">
-                    Material *
-                  </label>
-
-                  <select
-                    id="materialSeleccionado"
-                    required
-                  >
-                    <option value="">
-                      Seleccioná un material
-                    </option>
+                  <label for="materialSeleccionado">Material *</label>
+                  <select id="materialSeleccionado" required>
+                    <option value="">Seleccioná un material</option>
                   </select>
-
                 </div>
 
-
                 <div class="campo">
-
-                  <label for="cantidadMaterial">
-                    Cantidad solicitada *
-                  </label>
-
+                  <label for="cantidadMaterial">Cantidad solicitada *</label>
                   <input
                     type="number"
                     id="cantidadMaterial"
@@ -445,14 +249,10 @@
                     placeholder="Cantidad"
                     required
                   />
-
                 </div>
-
               </div>
 
-
               <div class="acciones-seccion">
-
                 <button
                   type="button"
                   id="btnAgregarMaterial"
@@ -460,20 +260,13 @@
                 >
                   + Agregar a la lista
                 </button>
-
               </div>
 
-
-              <!-- Detalle de solicitud -->
-
               <div class="subseccion">
-
                 <h4>Detalle de materiales solicitados</h4>
 
                 <div class="tabla-contenedor">
-
                   <table>
-
                     <thead>
                       <tr>
                         <th>Material</th>
@@ -484,42 +277,25 @@
                     </thead>
 
                     <tbody id="tablaDetalleSolicitud">
-
                       <tr>
-                        <td colspan="4">
-                          Todavía no agregaste materiales.
-                        </td>
+                        <td colspan="4">Todavía no agregaste materiales.</td>
                       </tr>
-
                     </tbody>
-
                   </table>
-
                 </div>
-
               </div>
 
-
-              <!-- Observación -->
-
               <div class="campo campo-completo">
-
-                <label for="observacionSolicitud">
-                  Observación
-                </label>
-
+                <label for="observacionSolicitud">Observación</label>
                 <textarea
                   id="observacionSolicitud"
                   maxlength="255"
                   rows="3"
                   placeholder="Motivo o detalle de la solicitud..."
                 ></textarea>
-
               </div>
 
-
               <div class="acciones-formulario">
-
                 <button
                   type="submit"
                   id="btnEnviarSolicitud"
@@ -527,39 +303,22 @@
                 >
                   Enviar solicitud
                 </button>
-
               </div>
-
             </form>
-
           </div>
-
         </div>
 
-
-        <!-- ====================================== -->
-        <!-- PESTAÑA: SOLICITUDES                   -->
-        <!-- ====================================== -->
-
-        <div
-          id="contenido-solicitudes"
-          class="contenido-pestana oculto"
-        >
-
+        <!-- SOLICITUDES -->
+        <div id="contenido-solicitudes" class="contenido-pestana oculto">
           <div class="subseccion">
-
             <h4>Solicitudes de materiales</h4>
-
             <p>
-              Consultá las solicitudes realizadas para esta obra
-              y verificá su estado.
+              Consultá las solicitudes realizadas para esta obra y verificá su
+              estado.
             </p>
 
-
             <div class="tabla-contenedor">
-
               <table>
-
                 <thead>
                   <tr>
                     <th>N.º</th>
@@ -570,48 +329,24 @@
                   </tr>
                 </thead>
 
-
                 <tbody id="tablaSolicitudes">
-
                   <tr>
-                    <td colspan="5">
-                      No se cargaron solicitudes todavía.
-                    </td>
+                    <td colspan="5">No se cargaron solicitudes todavía.</td>
                   </tr>
-
                 </tbody>
-
               </table>
-
             </div>
-
           </div>
-
         </div>
 
-
-        <!-- ====================================== -->
-        <!-- PESTAÑA: HISTORIAL DE ENTREGAS         -->
-        <!-- ====================================== -->
-
-        <div
-          id="contenido-historial"
-          class="contenido-pestana oculto"
-        >
-
+        <!-- HISTORIAL DE ENTREGAS -->
+        <div id="contenido-historial" class="contenido-pestana oculto">
           <div class="subseccion">
-
             <h4>Historial de entregas</h4>
-
-            <p>
-              Consultá los materiales entregados a esta obra.
-            </p>
-
+            <p>Consultá los materiales entregados a esta obra.</p>
 
             <div class="tabla-contenedor">
-
               <table>
-
                 <thead>
                   <tr>
                     <th>Fecha</th>
@@ -621,107 +356,47 @@
                   </tr>
                 </thead>
 
-
                 <tbody id="tablaHistorialEntregas">
-
                   <tr>
-                    <td colspan="4">
-                      No se cargaron entregas todavía.
-                    </td>
+                    <td colspan="4">No se cargaron entregas todavía.</td>
                   </tr>
-
                 </tbody>
-
               </table>
-
             </div>
-
           </div>
-
         </div>
 
-
-        <!-- Mensajes -->
-
-        <p
-          id="mensajeMateriales"
-          role="status"
-          aria-live="polite"
-        ></p>
-
+        <p id="mensajeMateriales" role="status" aria-live="polite"></p>
       </section>
 
-
-
-      <!-- ====================================== -->
-      <!-- PANEL DE PERSONAL                      -->
-      <!-- ====================================== -->
-
-      <section
-        id="panelPersonal"
-        class="tarjeta oculto"
-      >
-
-        <!-- Encabezado -->
-
+      <!-- PANEL DE PERSONAL -->
+      <section id="panelPersonal" class="tarjeta oculto">
         <div class="tabla-encabezado">
-
           <div>
             <h3>Gestión de personal</h3>
-
             <p id="nombreObraPersonal"></p>
           </div>
 
-          <button
-            type="button"
-            id="btnCerrarPersonal"
-            class="btn-secundario"
-          >
+          <button type="button" id="btnCerrarPersonal" class="btn-secundario">
             Volver a obras
           </button>
-
         </div>
 
-
-        <!-- ====================================== -->
-        <!-- FORMULARIO DE TRABAJADORES             -->
-        <!-- ====================================== -->
-
+        <!-- FORMULARIO DE TRABAJADORES -->
         <div class="subseccion">
-
           <div class="seccion-titulo">
-
             <div>
-              <h4 id="tituloFormularioPersonal">
-                Registrar trabajador
-              </h4>
-
-              <p>
-                Registrá los datos del trabajador en el sistema.
-              </p>
+              <h4 id="tituloFormularioPersonal">Registrar trabajador</h4>
+              <p>Registrá los datos del trabajador en el sistema.</p>
             </div>
-
           </div>
 
-
           <form id="formPersonal">
-
-            <input
-              type="hidden"
-              id="id_personal"
-            />
-
+            <input type="hidden" id="id_personal" />
 
             <div class="form-grid">
-
-              <!-- Nombre -->
-
               <div class="campo">
-
-                <label for="nombre_trabajador">
-                  Nombre completo *
-                </label>
-
+                <label for="nombre_trabajador">Nombre completo *</label>
                 <input
                   type="text"
                   id="nombre_trabajador"
@@ -729,18 +404,10 @@
                   placeholder="Nombre y apellido"
                   required
                 />
-
               </div>
 
-
-              <!-- Cargo -->
-
               <div class="campo">
-
-                <label for="cargo">
-                  Cargo *
-                </label>
-
+                <label for="cargo">Cargo *</label>
                 <input
                   type="text"
                   id="cargo"
@@ -748,18 +415,10 @@
                   placeholder="Ej. Electricista"
                   required
                 />
-
               </div>
 
-
-              <!-- Teléfono -->
-
               <div class="campo">
-
-                <label for="telefono">
-                  Teléfono *
-                </label>
-
+                <label for="telefono">Teléfono *</label>
                 <input
                   type="tel"
                   id="telefono"
@@ -767,55 +426,32 @@
                   placeholder="Número de contacto"
                   required
                 />
-
               </div>
 
-
-              <!-- Correo -->
-
               <div class="campo">
-
-                <label for="gmail">
-                  Correo electrónico
-                </label>
-
+                <label for="gmail">Correo electrónico</label>
                 <input
                   type="email"
                   id="gmail"
                   maxlength="150"
                   placeholder="correo@ejemplo.com"
                 />
-
               </div>
 
-
-              <!-- Dirección -->
-
               <div class="campo campo-completo">
-
-                <label for="direccion">
-                  Dirección
-                </label>
-
+                <label for="direccion">Dirección</label>
                 <input
                   type="text"
                   id="direccion"
                   maxlength="200"
                   placeholder="Dirección del trabajador"
                 />
-
               </div>
-
             </div>
 
-
-            <p class="nota">
-              Los campos marcados con * son obligatorios.
-            </p>
-
+            <p class="nota">Los campos marcados con * son obligatorios.</p>
 
             <div class="acciones-formulario">
-
               <button
                 type="button"
                 id="btnCancelarPersonal"
@@ -831,42 +467,23 @@
               >
                 Registrar trabajador
               </button>
-
             </div>
-
           </form>
-
         </div>
 
-
-
-        <!-- ====================================== -->
-        <!-- PERSONAL ASIGNADO A LA OBRA           -->
-        <!-- ====================================== -->
-
+        <!-- PERSONAL ASIGNADO -->
         <div class="subseccion">
-
           <div class="tabla-encabezado">
-
             <div>
               <h4>Personal asignado a esta obra</h4>
-
-              <p>
-                Trabajadores que actualmente forman parte de esta obra.
-              </p>
+              <p>Trabajadores que actualmente forman parte de esta obra.</p>
             </div>
 
-            <span id="totalPersonal">
-              0 trabajadores
-            </span>
-
+            <span id="totalPersonal">0 trabajadores</span>
           </div>
 
-
           <div class="tabla-contenedor">
-
             <table>
-
               <thead>
                 <tr>
                   <th>ID</th>
@@ -879,73 +496,42 @@
                 </tr>
               </thead>
 
-
               <tbody id="tablaPersonal">
-
                 <tr>
                   <td colspan="7">
                     No hay trabajadores asignados a esta obra.
                   </td>
                 </tr>
-
               </tbody>
-
             </table>
-
           </div>
-
         </div>
 
-
-
-        <!-- ====================================== -->
-        <!-- REGISTRO GENERAL DE TRABAJADORES       -->
-        <!-- ====================================== -->
-
+        <!-- REGISTRO GENERAL -->
         <div class="subseccion">
-
           <div class="tabla-encabezado">
-
             <div>
               <h4>Registro general de trabajadores</h4>
-
               <p>
-                Seleccioná un trabajador registrado para asignarlo
-                a esta obra.
+                Seleccioná un trabajador registrado para asignarlo a esta obra.
               </p>
             </div>
 
-            <span id="totalRegistroPersonal">
-              0 trabajadores
-            </span>
-
+            <span id="totalRegistroPersonal">0 trabajadores</span>
           </div>
 
-
-          <!-- Buscador de trabajadores -->
-
           <div class="campo busqueda-personal">
-
-            <label for="buscarPersonalRegistro">
-              Buscar trabajador
-            </label>
-
+            <label for="buscarPersonalRegistro">Buscar trabajador</label>
             <input
               type="search"
               id="buscarPersonalRegistro"
               placeholder="Buscar por nombre, cargo o teléfono..."
               autocomplete="off"
             />
-
           </div>
 
-
-          <!-- Tabla general -->
-
           <div class="tabla-contenedor">
-
             <table>
-
               <thead>
                 <tr>
                   <th>ID</th>
@@ -958,49 +544,23 @@
                 </tr>
               </thead>
 
-
               <tbody id="tablaRegistroPersonal">
-
                 <tr>
-                  <td colspan="7">
-                    Cargando trabajadores registrados...
-                  </td>
+                  <td colspan="7">Cargando trabajadores registrados...</td>
                 </tr>
-
               </tbody>
-
             </table>
-
           </div>
-
         </div>
 
-
-        <!-- Mensajes de personal -->
-
-        <p
-          id="mensajePersonal"
-          role="status"
-          aria-live="polite"
-        ></p>
-
+        <p id="mensajePersonal" role="status" aria-live="polite"></p>
       </section>
-
     </main>
 
-
-    <!-- ====================================== -->
-    <!-- BIBLIOTECA DE ICONOS                   -->
-    <!-- ====================================== -->
-
+    <!-- ICONOS -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
-
-    <!-- ====================================== -->
-    <!-- JAVASCRIPT DEL MÓDULO                  -->
-    <!-- ====================================== -->
-
+    <!-- JAVASCRIPT -->
     <script src="/js/obra.js"></script>
-
   </body>
 </html>

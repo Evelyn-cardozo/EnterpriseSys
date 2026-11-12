@@ -1,4 +1,3 @@
-
 // ========================================
 // VERIFICAR SI EL USUARIO INICIÓ SESIÓN
 // ========================================
@@ -27,6 +26,14 @@ const verificarRol = (...rolesPermitidos) => {
 
     const idRol = Number(req.session.usuario.id_rol);
 
+    // DEBUG TEMPORAL
+    console.log("VERIFICACIÓN DE PERMISOS:", {
+      usuario: req.session.usuario.id_usuario,
+      rolRecibido: req.session.usuario.id_rol,
+      rolConvertido: idRol,
+      rolesPermitidos,
+    });
+
     if (!rolesPermitidos.includes(idRol)) {
       return res.status(403).json({
         mensaje: "No tenés permisos para realizar esta acción",
@@ -36,6 +43,10 @@ const verificarRol = (...rolesPermitidos) => {
     next();
   };
 };
+
+// ========================================
+// EXPORTAR MIDDLEWARE
+// ========================================
 
 module.exports = {
   verificarSesion,

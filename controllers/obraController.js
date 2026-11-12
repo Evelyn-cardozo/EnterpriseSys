@@ -1,4 +1,3 @@
-
 const obraModel = require("../models/obraModel");
 const clienteModel = require("../models/clienteModel");
 
@@ -56,7 +55,7 @@ const registrarObra = async (req, res) => {
     const clienteValido = clientes.some(
       (c) =>
         Number(c.id_cliente) === Number(id_cliente) &&
-        String(c.estado).trim().toLowerCase() === "activo"
+        String(c.estado).trim().toLowerCase() === "activo",
     );
 
     if (!clienteValido) {
@@ -69,7 +68,8 @@ const registrarObra = async (req, res) => {
 
     if (!Number.isFinite(presupuesto) || presupuesto < 0) {
       return res.status(400).json({
-        mensaje: "El presupuesto debe ser un número válido igual o mayor a cero",
+        mensaje:
+          "El presupuesto debe ser un número válido igual o mayor a cero",
       });
     }
 
@@ -98,7 +98,8 @@ const registrarObra = async (req, res) => {
 
     if (fin < inicio) {
       return res.status(400).json({
-        mensaje: "La fecha de finalización no puede ser anterior a la fecha de inicio",
+        mensaje:
+          "La fecha de finalización no puede ser anterior a la fecha de inicio",
       });
     }
 
@@ -153,9 +154,7 @@ const modificarObra = async (req, res) => {
     }
 
     // Bloquear obras finalizadas o canceladas
-    const estadoActual = String(obraExistente.estado)
-      .trim()
-      .toLowerCase();
+    const estadoActual = String(obraExistente.estado).trim().toLowerCase();
 
     if (["finalizada", "cancelada"].includes(estadoActual)) {
       return res.status(409).json({
@@ -189,7 +188,7 @@ const modificarObra = async (req, res) => {
     const clienteValido = clientes.some(
       (c) =>
         Number(c.id_cliente) === Number(id_cliente) &&
-        String(c.estado).trim().toLowerCase() === "activo"
+        String(c.estado).trim().toLowerCase() === "activo",
     );
 
     if (!clienteValido) {
@@ -203,7 +202,8 @@ const modificarObra = async (req, res) => {
 
     if (!Number.isFinite(presupuesto) || presupuesto < 0) {
       return res.status(400).json({
-        mensaje: "El presupuesto debe ser un número válido igual o mayor a cero",
+        mensaje:
+          "El presupuesto debe ser un número válido igual o mayor a cero",
       });
     }
 
@@ -233,7 +233,8 @@ const modificarObra = async (req, res) => {
 
     if (fin < inicio) {
       return res.status(400).json({
-        mensaje: "La fecha de finalización no puede ser anterior a la fecha de inicio",
+        mensaje:
+          "La fecha de finalización no puede ser anterior a la fecha de inicio",
       });
     }
 
@@ -256,7 +257,6 @@ const modificarObra = async (req, res) => {
       mensaje: "Obra modificada correctamente",
       obra,
     });
-
   } catch (error) {
     console.error("Error al modificar obra:", error);
 
@@ -292,17 +292,15 @@ const cambiarEstadoObra = async (req, res) => {
       });
     }
 
-    const estadoActual = String(obraExistente.estado)
-      .trim()
-      .toLowerCase();
+    const estadoActual = String(obraExistente.estado).trim().toLowerCase();
 
     const nuevoEstado = String(estado || "").trim();
 
     const transicionesPermitidas = {
-      "planificada": ["En ejecución", "Cancelada"],
+      planificada: ["En ejecución", "Cancelada"],
       "en ejecución": ["Finalizada", "Cancelada"],
-      "finalizada": [],
-      "cancelada": [],
+      finalizada: [],
+      cancelada: [],
     };
 
     if (!transicionesPermitidas[estadoActual]) {
@@ -317,16 +315,12 @@ const cambiarEstadoObra = async (req, res) => {
       });
     }
 
-    const obra = await obraModel.cambiarEstadoObra(
-      Number(id),
-      nuevoEstado
-    );
+    const obra = await obraModel.cambiarEstadoObra(Number(id), nuevoEstado);
 
     return res.status(200).json({
       mensaje: "Estado de la obra actualizado correctamente",
       obra,
     });
-
   } catch (error) {
     console.error("Error al cambiar el estado de la obra:", error);
 
@@ -336,10 +330,9 @@ const cambiarEstadoObra = async (req, res) => {
   }
 };
 
-
- // ===============================
- // TRABAJADORES
- // ===============================
+// ===============================
+// TRABAJADORES
+// ===============================
 
 // Listar todos los trabajadores registrados
 const listarTrabajadores = async (req, res) => {
@@ -390,19 +383,9 @@ const listarTrabajadoresPorObra = async (req, res) => {
 // Registrar trabajador sin asignarlo a una obra
 const registrarTrabajador = async (req, res) => {
   try {
-    const {
-      nombre_trabajador,
-      cargo,
-      telefono,
-      gmail,
-      direccion,
-    } = req.body;
+    const { nombre_trabajador, cargo, telefono, gmail, direccion } = req.body;
 
-    if (
-      !nombre_trabajador?.trim() ||
-      !cargo?.trim() ||
-      !telefono?.trim()
-    ) {
+    if (!nombre_trabajador?.trim() || !cargo?.trim() || !telefono?.trim()) {
       return res.status(400).json({
         mensaje: "Nombre, cargo y teléfono son obligatorios",
       });
@@ -434,13 +417,7 @@ const modificarTrabajador = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const {
-      nombre_trabajador,
-      cargo,
-      telefono,
-      gmail,
-      direccion,
-    } = req.body;
+    const { nombre_trabajador, cargo, telefono, gmail, direccion } = req.body;
 
     if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
       return res.status(400).json({
@@ -448,18 +425,15 @@ const modificarTrabajador = async (req, res) => {
       });
     }
 
-    if (
-      !nombre_trabajador?.trim() ||
-      !cargo?.trim() ||
-      !telefono?.trim()
-    ) {
+    if (!nombre_trabajador?.trim() || !cargo?.trim() || !telefono?.trim()) {
       return res.status(400).json({
         mensaje: "Nombre, cargo y teléfono son obligatorios",
       });
     }
 
-    const trabajadorExistente =
-      await obraModel.buscarTrabajadorPorId(Number(id));
+    const trabajadorExistente = await obraModel.buscarTrabajadorPorId(
+      Number(id),
+    );
 
     if (!trabajadorExistente) {
       return res.status(404).json({
@@ -500,10 +474,7 @@ const asignarTrabajadorAObra = async (req, res) => {
       });
     }
 
-    if (
-      !Number.isInteger(Number(id_personal)) ||
-      Number(id_personal) <= 0
-    ) {
+    if (!Number.isInteger(Number(id_personal)) || Number(id_personal) <= 0) {
       return res.status(400).json({
         mensaje: "El trabajador seleccionado no es válido",
       });
@@ -511,7 +482,7 @@ const asignarTrabajadorAObra = async (req, res) => {
 
     const asignacion = await obraModel.asignarTrabajadorAObra(
       Number(id),
-      Number(id_personal)
+      Number(id_personal),
     );
 
     return res.status(201).json({
@@ -553,8 +524,9 @@ const eliminarTrabajador = async (req, res) => {
       });
     }
 
-    const trabajadorExistente =
-      await obraModel.buscarTrabajadorPorId(Number(id));
+    const trabajadorExistente = await obraModel.buscarTrabajadorPorId(
+      Number(id),
+    );
 
     if (!trabajadorExistente) {
       return res.status(404).json({
@@ -566,7 +538,8 @@ const eliminarTrabajador = async (req, res) => {
 
     if (!trabajador) {
       return res.status(409).json({
-        mensaje: "No se puede eliminar un trabajador que tiene historial de asignaciones.",
+        mensaje:
+          "No se puede eliminar un trabajador que tiene historial de asignaciones.",
       });
     }
 
@@ -582,7 +555,6 @@ const eliminarTrabajador = async (req, res) => {
     });
   }
 };
-
 
 // ===============================
 // EXPORTAR FUNCIONES
@@ -601,4 +573,3 @@ module.exports = {
   eliminarTrabajador,
   asignarTrabajadorAObra,
 };
-

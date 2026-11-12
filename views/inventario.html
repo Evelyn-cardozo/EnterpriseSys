@@ -1,528 +1,467 @@
-
 <!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <meta
-    name="description"
-    content="Módulo de gestión de inventario de EnterpriseSys."
-  >
+    <meta
+      name="description"
+      content="Módulo de gestión de inventario de EnterpriseSys."
+    />
 
-  <title>EnterpriseSys - Inventario</title>
+    <title>EnterpriseSys - Inventario</title>
 
-  <link rel="stylesheet" href="/css/inventario.css">
-</head>
+    <link rel="stylesheet" href="/css/inventario.css" />
+  </head>
 
-<body>
-
-  <main class="contenedor-inventario">
-
-    <!-- ENCABEZADO -->
-    <header class="encabezado-pagina">
-      <div>
-        <h1>Gestión de inventario</h1>
-        <p>Administración de materiales, solicitudes y movimientos.</p>
-      </div>
-    </header>
-
-    <!-- =====================================
-         SECCIÓN DE MATERIALES
-    ====================================== -->
-    <section id="seccionMateriales" class="seccion-inventario">
-
-      <div class="encabezado-seccion">
+  <body>
+    <main class="contenedor-inventario">
+      <!-- ENCABEZADO -->
+      <header class="encabezado-pagina">
         <div>
-          <h2>Materiales</h2>
-          <p>Registro y consulta de materiales disponibles.</p>
+          <h1>Gestión de inventario</h1>
+          <p>Administración y consulta de materiales y solicitudes.</p>
         </div>
 
-        <button
-          type="button"
-          id="btnNuevoMaterial"
-          class="btn btn-principal"
-        >
-          + Nuevo material
-        </button>
-      </div>
+        <a href="/inicio" class="btn-volver-inicio">
+          <span class="icono-volver">←</span>
+          Volver al inicio
+        </a>
+      </header>
 
-      <div class="resumen-inventario">
-        <div class="tarjeta-resumen">
-          <span>Total de materiales</span>
-          <strong id="totalMateriales">0</strong>
-        </div>
+      <!-- MATERIALES -->
+      <section id="seccionMateriales" class="seccion-inventario">
+        <div class="encabezado-seccion">
+          <div>
+            <h2>Materiales</h2>
+            <p>Registro y consulta de materiales disponibles.</p>
+          </div>
 
-        <div class="tarjeta-resumen">
-          <span>Materiales con stock bajo</span>
-          <strong id="stockBajo">0</strong>
-        </div>
-      </div>
-
-      <div class="barra-herramientas">
-        <input
-          type="search"
-          id="buscarMaterial"
-          placeholder="Buscar material..."
-        >
-      </div>
-
-      <div
-        id="mensajeInventario"
-        class="mensaje"
-        role="status"
-      ></div>
-
-      <div class="tabla-contenedor">
-        <table>
-          <thead>
-            <tr>
-              <th>Material</th>
-              <th>Descripción</th>
-              <th>Precio actual</th>
-              <th>Stock actual</th>
-              <th>Stock mínimo</th>
-              <th>Ubicación</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-
-          <tbody id="tablaMateriales">
-            <tr>
-              <td colspan="7">Cargando materiales...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-    </section>
-
-    <!-- =====================================
-         SECCIÓN DE SOLICITUDES PENDIENTES
-    ====================================== -->
-    <section id="seccionSolicitudes" class="seccion-inventario">
-
-      <div class="encabezado-seccion">
-        <div>
-          <h2>Solicitudes de materiales</h2>
-          <p>Consulta y gestión de las solicitudes recibidas.</p>
-        </div>
-
-        <button
-          type="button"
-          id="btnActualizarSolicitudes"
-          class="btn btn-secundario"
-        >
-          Actualizar
-        </button>
-      </div>
-
-      <div class="barra-herramientas">
-
-        <input
-          type="search"
-          id="buscarSolicitud"
-          placeholder="Buscar solicitud u obra..."
-        >
-
-        <select id="filtroEstadoSolicitud">
-          <option value="">Todos los estados</option>
-          <option value="Pendiente">Pendiente</option>
-          <option value="Aprobada">Aprobada</option>
-          <option value="Rechazada">Rechazada</option>
-          <option value="Parcial">Parcial</option>
-          <option value="Entregada">Entregada</option>
-        </select>
-
-      </div>
-
-      <div
-        id="mensajeSolicitudes"
-        class="mensaje"
-        role="status"
-      ></div>
-
-      <div class="tabla-contenedor">
-        <table>
-          <thead>
-            <tr>
-              <th>N.º</th>
-              <th>Obra</th>
-              <th>Solicitante</th>
-              <th>Fecha</th>
-              <th>Cantidad de materiales</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-
-          <tbody id="tablaSolicitudes">
-            <tr>
-              <td colspan="7">Cargando solicitudes...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-    </section>
-
-    <!-- =====================================
-         HISTORIAL DE SOLICITUDES
-    ====================================== -->
-    <section id="seccionHistorial" class="seccion-inventario">
-
-      <div class="encabezado-seccion">
-        <div>
-          <h2>Historial de solicitudes</h2>
-          <p>Consulta de solicitudes aprobadas, rechazadas o entregadas.</p>
-        </div>
-
-        <button
-          type="button"
-          id="btnActualizarHistorial"
-          class="btn btn-secundario"
-        >
-          Actualizar
-        </button>
-      </div>
-
-      <div class="barra-herramientas">
-        <input
-          type="search"
-          id="buscarHistorial"
-          placeholder="Buscar por obra, solicitante o estado..."
-        >
-      </div>
-
-      <div
-        id="mensajeHistorial"
-        class="mensaje"
-        role="status"
-      ></div>
-
-      <div class="tabla-contenedor">
-        <table>
-          <thead>
-            <tr>
-              <th>N.º</th>
-              <th>Obra</th>
-              <th>Solicitante</th>
-              <th>Fecha</th>
-              <th>Estado</th>
-              <th>Detalle</th>
-            </tr>
-          </thead>
-
-          <tbody id="tablaHistorial">
-            <tr>
-              <td colspan="6">Cargando historial...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-    </section>
-
-    <!-- =====================================
-         HISTORIAL DE MOVIMIENTOS
-    ====================================== -->
-    <section id="seccionMovimientos" class="seccion-inventario">
-
-      <div class="encabezado-seccion">
-        <div>
-          <h2>Historial de entradas y salidas</h2>
-          <p>
-            Registro de los movimientos realizados en el inventario.
-          </p>
-        </div>
-
-        <div class="acciones-encabezado">
-
-          <button
-            type="button"
-            id="btnRegistrarEntrada"
-            class="btn btn-principal"
-          >
-            + Registrar entrada
+          <button type="button" id="btnNuevoMaterial" class="btn btn-principal">
+            + Nuevo material
           </button>
+        </div>
+
+        <div class="resumen-inventario">
+          <div class="tarjeta-resumen">
+            <span>Total de materiales</span>
+            <strong id="totalMateriales">0</strong>
+          </div>
+
+          <div class="tarjeta-resumen">
+            <span>Materiales con stock bajo</span>
+            <strong id="stockBajo">0</strong>
+          </div>
+        </div>
+
+        <div class="barra-herramientas">
+          <input
+            type="search"
+            id="buscarMaterial"
+            placeholder="Buscar material..."
+            aria-label="Buscar material"
+          />
+        </div>
+
+        <div
+          id="mensajeInventario"
+          class="mensaje"
+          role="status"
+          aria-live="polite"
+        ></div>
+
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr>
+                <th>Material</th>
+                <th>Descripción</th>
+                <th>Precio actual</th>
+                <th>Stock actual</th>
+                <th>Stock mínimo</th>
+                <th>Ubicación</th>
+                <th id="columnaAccionesMaterial">Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody id="tablaMateriales">
+              <tr>
+                <td colspan="7">Cargando materiales...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SOLICITUDES -->
+      <section id="seccionSolicitudes" class="seccion-inventario">
+        <div class="encabezado-seccion">
+          <div>
+            <h2>Solicitudes de materiales</h2>
+            <p>Consulta y gestión de las solicitudes recibidas.</p>
+          </div>
 
           <button
             type="button"
-            id="btnActualizarMovimientos"
+            id="btnActualizarSolicitudes"
             class="btn btn-secundario"
           >
             Actualizar
           </button>
-
         </div>
-      </div>
 
-      <div class="barra-herramientas">
-
-        <input
-          type="search"
-          id="buscarMovimiento"
-          placeholder="Buscar material, obra o usuario..."
-        >
-
-        <select id="filtroTipoMovimiento">
-          <option value="">Todas las operaciones</option>
-          <option value="Entrada">Entradas</option>
-          <option value="Salida">Salidas</option>
-        </select>
-
-      </div>
-
-      <div
-        id="mensajeMovimientos"
-        class="mensaje"
-        role="status"
-      ></div>
-
-      <div class="tabla-contenedor">
-        <table>
-          <thead>
-            <tr>
-              <th>Material</th>
-              <th>Tipo de movimiento</th>
-              <th>Cantidad</th>
-              <th>Obra</th>
-              <th>Usuario</th>
-              <th>Fecha</th>
-              <th>Motivo</th>
-            </tr>
-          </thead>
-
-          <tbody id="tablaMovimientos">
-            <tr>
-              <td colspan="7">Cargando movimientos...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-    </section>
-
-  </main>
-
-  <!-- =====================================
-       MODAL DE MATERIAL
-  ====================================== -->
-  <div
-    id="modalMaterial"
-    class="modal"
-    aria-hidden="true"
-  >
-    <div class="modal-contenido">
-
-      <div class="modal-encabezado">
-        <h2 id="tituloModalMaterial">Nuevo material</h2>
-
-        <button
-          type="button"
-          id="cerrarModalMaterial"
-          class="btn-cerrar"
-          aria-label="Cerrar"
-        >
-          &times;
-        </button>
-      </div>
-
-      <form id="formMaterial">
-
-        <div class="campo">
-          <label for="nombreMaterial">Nombre del material</label>
+        <div class="barra-herramientas">
           <input
-            type="text"
-            id="nombreMaterial"
-            required
-          >
-        </div>
-
-        <div class="campo">
-          <label for="descripcionMaterial">Descripción</label>
-          <textarea
-            id="descripcionMaterial"
-            rows="3"
-          ></textarea>
-        </div>
-
-        <div class="campo">
-          <label for="precioMaterial">Precio actual</label>
-          <input
-            type="number"
-            id="precioMaterial"
-            min="0"
-            step="0.01"
-            required
-          >
-        </div>
-
-        <div class="campo">
-          <label for="stockMaterial">Stock actual</label>
-          <input
-            type="number"
-            id="stockMaterial"
-            min="0"
-            step="1"
-            required
-          >
-        </div>
-
-        <div class="campo">
-          <label for="stockMinimoMaterial">Stock mínimo</label>
-          <input
-            type="number"
-            id="stockMinimoMaterial"
-            min="0"
-            step="1"
-            required
-          >
-        </div>
-
-        <div class="campo">
-          <label for="ubicacionMaterial">Ubicación física</label>
-          <input
-            type="text"
-            id="ubicacionMaterial"
-          >
-        </div>
-
-        <div class="acciones-modal">
-          <button
-            type="button"
-            id="cancelarMaterial"
-            class="btn btn-secundario"
-          >
-            Cancelar
-          </button>
-
-          <button
-            type="submit"
-            class="btn btn-principal"
-          >
-            Guardar material
-          </button>
-        </div>
-
-      </form>
-    </div>
-  </div>
-
-  <!-- =====================================
-       MODAL DE DETALLE DE SOLICITUD
-  ====================================== -->
-  <div
-    id="modalDetalleSolicitud"
-    class="modal"
-    aria-hidden="true"
-  >
-    <div class="modal-contenido modal-amplio">
-
-      <div class="modal-encabezado">
-     <h2 id="tituloModalDetalle">Detalle de solicitud</h2>
-
-        <button
-          type="button"
-          id="cerrarModalDetalle"
-          class="btn-cerrar"
-          aria-label="Cerrar"
-        >
-          &times;
-        </button>
-      </div>
-
-      <div id="contenidoDetalleSolicitud">
-        <!-- El contenido se genera desde inventario.js -->
-      </div>
-
-    </div>
-  </div>
-
-  <!-- =====================================
-       MODAL PARA REGISTRAR ENTRADA
-  ====================================== -->
-  <div
-    id="modalEntrada"
-    class="modal"
-    aria-hidden="true"
-  >
-    <div class="modal-contenido">
-
-      <div class="modal-encabezado">
-        <h2 id="tituloModalEntrada">Registrar entrada de material</h2>
-
-        <button
-          type="button"
-          id="cerrarModalEntrada"
-          class="btn-cerrar"
-          aria-label="Cerrar"
-        >
-          &times;
-        </button>
-      </div>
-
-      <form id="formEntrada">
-
-        <div class="campo">
-          <label for="materialEntrada">Material</label>
+            type="search"
+            id="buscarSolicitud"
+            placeholder="Buscar solicitud u obra..."
+            aria-label="Buscar solicitud"
+          />
 
           <select
-            id="materialEntrada"
-            required
+            id="filtroEstadoSolicitud"
+            aria-label="Filtrar solicitudes por estado"
           >
-            <option value="">Seleccione un material</option>
+            <option value="">Todos los estados</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="Aprobada">Aprobada</option>
+            <option value="Rechazada">Rechazada</option>
+            <option value="Parcial">Parcial</option>
+            <option value="Entregada">Entregada</option>
           </select>
         </div>
 
-        <div class="campo">
-          <label for="cantidadEntrada">Cantidad recibida</label>
+        <div
+          id="mensajeSolicitudes"
+          class="mensaje"
+          role="status"
+          aria-live="polite"
+        ></div>
 
-          <input
-            type="number"
-            id="cantidadEntrada"
-            min="1"
-            step="1"
-            required
-          >
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr>
+                <th>N.º</th>
+                <th>Obra</th>
+                <th>Solicitante</th>
+                <th>Fecha</th>
+                <th>Cantidad de materiales</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody id="tablaSolicitudes">
+              <tr>
+                <td colspan="7">Cargando solicitudes...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+      </section>
 
-        <div class="campo">
-          <label for="motivoEntrada">Motivo de la entrada</label>
-
-          <textarea
-            id="motivoEntrada"
-            rows="3"
-            placeholder="Ej.: Compra de materiales..."
-            required
-          ></textarea>
-        </div>
-
-        <div class="acciones-modal">
+      <!-- HISTORIAL DE SOLICITUDES -->
+      <section id="seccionHistorial" class="seccion-inventario">
+        <div class="encabezado-seccion">
+          <div>
+            <h2>Historial de solicitudes</h2>
+            <p>Consulta de solicitudes aprobadas, rechazadas o entregadas.</p>
+          </div>
 
           <button
             type="button"
-            id="cancelarEntrada"
+            id="btnActualizarHistorial"
             class="btn btn-secundario"
           >
-            Cancelar
+            Actualizar
           </button>
-
-          <button
-            type="submit"
-            class="btn btn-principal"
-          >
-            Registrar entrada
-          </button>
-
         </div>
 
-      </form>
+        <div class="barra-herramientas">
+          <input
+            type="search"
+            id="buscarHistorial"
+            placeholder="Buscar por obra, solicitante o estado..."
+            aria-label="Buscar en el historial"
+          />
+        </div>
 
+        <div
+          id="mensajeHistorial"
+          class="mensaje"
+          role="status"
+          aria-live="polite"
+        ></div>
+
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr>
+                <th>N.º</th>
+                <th>Obra</th>
+                <th>Solicitante</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Detalle</th>
+              </tr>
+            </thead>
+
+            <tbody id="tablaHistorial">
+              <tr>
+                <td colspan="6">Cargando historial...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- MOVIMIENTOS -->
+      <section id="seccionMovimientos" class="seccion-inventario">
+        <div class="encabezado-seccion">
+          <div>
+            <h2>Historial de entradas y salidas</h2>
+            <p>Registro de los movimientos realizados en el inventario.</p>
+          </div>
+
+          <div class="acciones-encabezado">
+            <button
+              type="button"
+              id="btnRegistrarEntrada"
+              class="btn btn-principal"
+            >
+              + Registrar entrada
+            </button>
+
+            <button
+              type="button"
+              id="btnActualizarMovimientos"
+              class="btn btn-secundario"
+            >
+              Actualizar
+            </button>
+          </div>
+        </div>
+
+        <div class="barra-herramientas">
+          <input
+            type="search"
+            id="buscarMovimiento"
+            placeholder="Buscar material, obra o usuario..."
+            aria-label="Buscar movimiento"
+          />
+
+          <select
+            id="filtroTipoMovimiento"
+            aria-label="Filtrar movimientos por tipo"
+          >
+            <option value="">Todas las operaciones</option>
+            <option value="Entrada">Entradas</option>
+            <option value="Salida">Salidas</option>
+          </select>
+        </div>
+
+        <div
+          id="mensajeMovimientos"
+          class="mensaje"
+          role="status"
+          aria-live="polite"
+        ></div>
+
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr>
+                <th>Material</th>
+                <th>Tipo de movimiento</th>
+                <th>Cantidad</th>
+                <th>Obra</th>
+                <th>Usuario</th>
+                <th>Fecha</th>
+                <th>Motivo</th>
+              </tr>
+            </thead>
+
+            <tbody id="tablaMovimientos">
+              <tr>
+                <td colspan="7">Cargando movimientos...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- MODAL DE MATERIAL -->
+    <div id="modalMaterial" class="modal" aria-hidden="true">
+      <div class="modal-contenido">
+        <div class="modal-encabezado">
+          <h2 id="tituloModalMaterial">Nuevo material</h2>
+
+          <button
+            type="button"
+            id="cerrarModalMaterial"
+            class="btn-cerrar"
+            aria-label="Cerrar"
+          >
+            &times;
+          </button>
+        </div>
+
+        <form id="formMaterial">
+          <div class="campo">
+            <label for="nombreMaterial">Nombre del material</label>
+            <input type="text" id="nombreMaterial" required />
+          </div>
+
+          <div class="campo">
+            <label for="descripcionMaterial">Descripción</label>
+            <textarea id="descripcionMaterial" rows="3"></textarea>
+          </div>
+
+          <div class="campo">
+            <label for="precioMaterial">Precio actual</label>
+            <input
+              type="number"
+              id="precioMaterial"
+              min="0"
+              step="0.01"
+              required
+            />
+          </div>
+
+          <div class="campo">
+            <label for="stockMaterial">Stock actual</label>
+            <input type="number" id="stockMaterial" min="0" step="1" required />
+          </div>
+
+          <div class="campo">
+            <label for="stockMinimoMaterial">Stock mínimo</label>
+            <input
+              type="number"
+              id="stockMinimoMaterial"
+              min="0"
+              step="1"
+              required
+            />
+          </div>
+
+          <div class="campo">
+            <label for="ubicacionMaterial">Ubicación física</label>
+            <input type="text" id="ubicacionMaterial" />
+          </div>
+
+          <div class="acciones-modal">
+            <button
+              type="button"
+              id="cancelarMaterial"
+              class="btn btn-secundario"
+            >
+              Cancelar
+            </button>
+
+            <button type="submit" class="btn btn-principal">
+              Guardar material
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
 
-  <script src="/js/inventario.js"></script>
+    <!-- MODAL DE DETALLE DE SOLICITUD -->
+    <div id="modalDetalleSolicitud" class="modal" aria-hidden="true">
+      <div class="modal-contenido modal-amplio">
+        <div class="modal-encabezado">
+          <h2 id="tituloModalDetalle">Detalle de solicitud</h2>
 
-</body>
+          <button
+            type="button"
+            id="cerrarModalDetalle"
+            class="btn-cerrar"
+            aria-label="Cerrar"
+          >
+            &times;
+          </button>
+        </div>
+
+        <div id="contenidoDetalleSolicitud"></div>
+      </div>
+    </div>
+
+    <!-- MODAL DE REGISTRO DE ENTRADA -->
+    <div id="modalEntrada" class="modal" aria-hidden="true">
+      <div class="modal-contenido">
+        <div class="modal-encabezado">
+          <h2 id="tituloModalEntrada">Registrar entrada de material</h2>
+
+          <button
+            type="button"
+            id="cerrarModalEntrada"
+            class="btn-cerrar"
+            aria-label="Cerrar"
+          >
+            &times;
+          </button>
+        </div>
+
+        <form id="formEntrada">
+          <div class="campo">
+            <label for="materialEntrada">Material</label>
+
+            <select id="materialEntrada" required>
+              <option value="">Seleccione un material</option>
+            </select>
+          </div>
+
+          <!-- NUEVO: OBRA ASOCIADA -->
+          <div class="campo">
+            <label for="obraEntrada">Obra asociada</label>
+
+            <select id="obraEntrada">
+              <option value="">Inventario general (sin obra)</option>
+            </select>
+          </div>
+
+          <div class="campo">
+            <label for="cantidadEntrada">Cantidad recibida</label>
+
+            <input
+              type="number"
+              id="cantidadEntrada"
+              min="1"
+              step="1"
+              required
+            />
+          </div>
+
+          <div class="campo">
+            <label for="motivoEntrada">Motivo de la entrada</label>
+
+            <textarea
+              id="motivoEntrada"
+              rows="3"
+              placeholder="Ej.: Compra de materiales..."
+              required
+            ></textarea>
+          </div>
+
+          <div class="acciones-modal">
+            <button
+              type="button"
+              id="cancelarEntrada"
+              class="btn btn-secundario"
+            >
+              Cancelar
+            </button>
+
+            <button type="submit" class="btn btn-principal">
+              Registrar entrada
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="/js/inventario.js"></script>
+  </body>
 </html>

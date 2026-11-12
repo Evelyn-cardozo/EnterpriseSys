@@ -43,6 +43,10 @@ const telefonoTrabajador = document.getElementById("telefono");
 const gmailTrabajador = document.getElementById("gmail");
 const direccionTrabajador = document.getElementById("direccion");
 
+const buscarPersonalRegistro = document.getElementById(
+  "buscarPersonalRegistro",
+);
+
 // ========================================
 // ELEMENTOS DEL PANEL DE MATERIALES
 // ========================================
@@ -52,7 +56,9 @@ const panelMateriales = document.getElementById("panelMateriales");
 const selectorMaterial = document.getElementById("materialSeleccionado");
 const cantidadMaterial = document.getElementById("cantidadMaterial");
 const tablaDetalleSolicitud = document.getElementById("tablaDetalleSolicitud");
-const formularioSolicitudMateriales = document.getElementById("formSolicitudMateriales");
+const formularioSolicitudMateriales = document.getElementById(
+  "formSolicitudMateriales",
+);
 
 const btnAgregarMaterial = document.getElementById("btnAgregarMaterial");
 const btnEnviarSolicitud = document.getElementById("btnEnviarSolicitud");
@@ -61,7 +67,9 @@ const observacionSolicitud = document.getElementById("observacionSolicitud");
 const mensajeMateriales = document.getElementById("mensajeMateriales");
 
 const tablaSolicitudes = document.getElementById("tablaSolicitudes");
-const tablaHistorialEntregas = document.getElementById("tablaHistorialEntregas");
+const tablaHistorialEntregas = document.getElementById(
+  "tablaHistorialEntregas",
+);
 
 // ========================================
 // VARIABLES GLOBALES
@@ -74,6 +82,7 @@ let obraEditandoId = null;
 let obraPersonalActual = null;
 let trabajadores = [];
 let todosTrabajadores = [];
+let personalSoloLectura = false;
 
 let obraMaterialesActual = null;
 let materialesDisponibles = [];
@@ -86,7 +95,6 @@ let movimientosObra = [];
 // FUNCIONES GENERALES
 // ========================================
 
-// Leer respuestas del servidor
 async function leerRespuesta(respuesta) {
   const texto = await respuesta.text();
 
@@ -101,7 +109,6 @@ async function leerRespuesta(respuesta) {
   }
 }
 
-// Formatear importes en guaraníes
 function formatearImporte(valor) {
   return new Intl.NumberFormat("es-PY", {
     style: "currency",
@@ -110,7 +117,6 @@ function formatearImporte(valor) {
   }).format(Number(valor) || 0);
 }
 
-// Formatear fechas
 function formatearFecha(fecha) {
   if (!fecha) return "—";
 
@@ -122,40 +128,38 @@ function formatearFecha(fecha) {
   return `${partes[2]}/${partes[1]}/${partes[0]}`;
 }
 
-// Normalizar texto
 function normalizarTexto(valor) {
-  return String(valor ?? "").trim().toLowerCase();
+  return String(valor ?? "")
+    .trim()
+    .toLowerCase();
 }
 
-// Verificar si una obra ya no permite modificaciones
 function obraBloqueada(obra) {
+  if (!obra) return false;
+
   const estado = normalizarTexto(obra.estado);
 
   return estado === "finalizada" || estado === "cancelada";
 }
 
-// Mostrar mensaje general
 function mostrarMensajePersonal(texto) {
   if (mensajePersonal) {
     mensajePersonal.textContent = texto;
   }
 }
 
-// Mostrar mensaje de materiales
 function mostrarMensajeMateriales(texto) {
   if (mensajeMateriales) {
     mensajeMateriales.textContent = texto;
   }
 }
 
-// Crear una celda segura
 function crearCelda(valor) {
   const celda = document.createElement("td");
   celda.textContent = valor ?? "—";
   return celda;
 }
 
-// Crear botón con icono
 function crearBotonIcono(icono, descripcion, clase = "btn-icono") {
   const boton = document.createElement("button");
 
@@ -168,7 +172,6 @@ function crearBotonIcono(icono, descripcion, clase = "btn-icono") {
   return boton;
 }
 
-// Dibujar iconos
 function actualizarIconos() {
   if (window.lucide) {
     lucide.createIcons();
@@ -181,7 +184,6 @@ function actualizarIconos() {
 
 async function cargarClientes() {
   const respuesta = await fetch("/clientes");
-
   const datos = await leerRespuesta(respuesta);
 
   if (!respuesta.ok || !Array.isArray(datos)) {
@@ -189,7 +191,7 @@ async function cargarClientes() {
   }
 
   clientes = datos.filter(
-    cliente => normalizarTexto(cliente.estado) === "activo"
+    (cliente) => normalizarTexto(cliente.estado) === "activo",
   );
 
   campoCliente.replaceChildren();
@@ -200,7 +202,7 @@ async function cargarClientes() {
 
   campoCliente.appendChild(opcionInicial);
 
-  clientes.forEach(cliente => {
+  clientes.forEach((cliente) => {
     const opcion = document.createElement("option");
 
     opcion.value = cliente.id_cliente;
@@ -226,7 +228,7 @@ function limpiarErrores() {
     campoPresupuesto,
     campoFechaInicio,
     campoFechaFin,
-  ].forEach(campo => campo.classList.remove("input-error"));
+  ].forEach((campo) => campo.classList.remove("input-error"));
 }
 
 function mostrarError(campo, elementoError, texto) {
@@ -241,11 +243,9 @@ async function prepararRegistro() {
 
   obraEditandoId = null;
 
-  document.getElementById("tituloFormulario").textContent =
-    "Registrar obra";
+  document.getElementById("tituloFormulario").textContent = "Registrar obra";
 
-  formulario.querySelector('[type="submit"]').textContent =
-    "Guardar obra";
+  formulario.querySelector('[type="submit"]').textContent = "Guardar obra";
 
   mensaje.textContent = "";
 
@@ -267,34 +267,31 @@ async function prepararRegistro() {
   }
 }
 
-document.getElementById("btnNuevaObra")
+document
+  .getElementById("btnNuevaObra")
   .addEventListener("click", prepararRegistro);
 
-document.getElementById("btnCancelar")
-  .addEventListener("click", () => {
-    formulario.reset();
-    limpiarErrores();
+document.getElementById("btnCancelar").addEventListener("click", () => {
+  formulario.reset();
+  limpiarErrores();
 
-    obraEditandoId = null;
+  obraEditandoId = null;
 
-    formularioContenedor.classList.add("oculto");
+  formularioContenedor.classList.add("oculto");
 
-    mensaje.textContent = "";
+  mensaje.textContent = "";
 
-    document.getElementById("tituloFormulario").textContent =
-      "Registrar obra";
+  document.getElementById("tituloFormulario").textContent = "Registrar obra";
 
-    formulario.querySelector('[type="submit"]').textContent =
-      "Guardar obra";
-  });
+  formulario.querySelector('[type="submit"]').textContent = "Guardar obra";
+});
 
 // ========================================
 // LISTAR OBRAS
 // ========================================
 
 async function cargarObras() {
-  tablaObras.innerHTML =
-    '<tr><td colspan="9">Cargando obras...</td></tr>';
+  tablaObras.innerHTML = '<tr><td colspan="9">Cargando obras...</td></tr>';
 
   try {
     const respuesta = await fetch("/obras");
@@ -305,9 +302,7 @@ async function cargarObras() {
     }
 
     obras = datos;
-
     mostrarObras();
-
   } catch (error) {
     tablaObras.innerHTML =
       '<tr><td colspan="9">Error al cargar las obras.</td></tr>';
@@ -323,17 +318,16 @@ async function cargarObras() {
 function mostrarObras() {
   const busqueda = normalizarTexto(buscarObra.value);
 
-  const filtradas = obras.filter(obra => {
+  const filtradas = obras.filter((obra) => {
     return [
       obra.id_obra,
       obra.nombre_obra,
       obra.nombre_cliente,
       obra.estado,
-    ].some(valor => normalizarTexto(valor).includes(busqueda));
+    ].some((valor) => normalizarTexto(valor).includes(busqueda));
   });
 
-  totalObras.textContent =
-    `${filtradas.length} ${filtradas.length === 1 ? "obra" : "obras"}`;
+  totalObras.textContent = `${filtradas.length} ${filtradas.length === 1 ? "obra" : "obras"}`;
 
   tablaObras.replaceChildren();
 
@@ -349,7 +343,7 @@ function mostrarObras() {
     return;
   }
 
-  filtradas.forEach(obra => {
+  filtradas.forEach((obra) => {
     const fila = document.createElement("tr");
     const estado = normalizarTexto(obra.estado);
 
@@ -360,7 +354,6 @@ function mostrarObras() {
       cancelada: "estado-cancelada",
     };
 
-    // Datos principales
     const valores = [
       obra.id_obra,
       obra.nombre_obra,
@@ -368,21 +361,18 @@ function mostrarObras() {
       formatearImporte(obra.presupuesto_planificado),
     ];
 
-    valores.forEach(valor => {
+    valores.forEach((valor) => {
       fila.appendChild(crearCelda(valor));
     });
 
-    // Fechas
     fila.appendChild(crearCelda(formatearFecha(obra.fecha_inicio)));
     fila.appendChild(crearCelda(formatearFecha(obra.fecha_fin_prevista)));
 
-    // Estado
     const celdaEstado = document.createElement("td");
     const etiquetaEstado = document.createElement("span");
 
     etiquetaEstado.textContent = obra.estado || "Planificada";
-    etiquetaEstado.className =
-      clasesEstado[estado] || "estado-planificada";
+    etiquetaEstado.className = clasesEstado[estado] || "estado-planificada";
 
     celdaEstado.appendChild(etiquetaEstado);
     fila.appendChild(celdaEstado);
@@ -390,10 +380,7 @@ function mostrarObras() {
     // Materiales
     const celdaMateriales = document.createElement("td");
 
-    const botonMateriales = crearBotonIcono(
-      "package",
-      "Materiales"
-    );
+    const botonMateriales = crearBotonIcono("package", "Materiales");
 
     botonMateriales.addEventListener("click", () => {
       abrirPanelMateriales(obra);
@@ -408,11 +395,7 @@ function mostrarObras() {
 
     contenedorAcciones.className = "acciones";
 
-    // Personal
-    const botonPersonal = crearBotonIcono(
-      "users",
-      "Personal"
-    );
+    const botonPersonal = crearBotonIcono("users", "Personal");
 
     botonPersonal.addEventListener("click", () => {
       abrirPersonal(obra);
@@ -420,27 +403,20 @@ function mostrarObras() {
 
     contenedorAcciones.appendChild(botonPersonal);
 
-    // Modificar
     if (!obraBloqueada(obra)) {
-      const botonModificar = crearBotonIcono(
-        "pencil",
-        "Modificar obra"
-      );
+      const botonModificar = crearBotonIcono("pencil", "Modificar obra");
 
       botonModificar.addEventListener("click", () => {
         prepararModificacion(obra);
       });
 
       contenedorAcciones.appendChild(botonModificar);
-    }
 
-    // Cambiar estado
-    if (!obraBloqueada(obra)) {
       const esPlanificada = estado === "planificada";
 
       const botonEstado = crearBotonIcono(
         esPlanificada ? "play" : "check-circle",
-        esPlanificada ? "Iniciar obra" : "Finalizar obra"
+        esPlanificada ? "Iniciar obra" : "Finalizar obra",
       );
 
       botonEstado.addEventListener("click", () => {
@@ -483,7 +459,7 @@ async function prepararModificacion(obra) {
     await cargarClientes();
 
     const clienteActualExiste = Array.from(campoCliente.options).some(
-      opcion => opcion.value === String(obra.id_cliente)
+      (opcion) => opcion.value === String(obra.id_cliente),
     );
 
     if (!clienteActualExiste && obra.id_cliente) {
@@ -507,11 +483,9 @@ async function prepararModificacion(obra) {
       ? String(obra.fecha_fin_prevista).slice(0, 10)
       : "";
 
-    document.getElementById("tituloFormulario").textContent =
-      "Modificar obra";
+    document.getElementById("tituloFormulario").textContent = "Modificar obra";
 
-    formulario.querySelector('[type="submit"]').textContent =
-      "Guardar cambios";
+    formulario.querySelector('[type="submit"]').textContent = "Guardar cambios";
 
     mensaje.textContent = "";
 
@@ -522,7 +496,6 @@ async function prepararModificacion(obra) {
     });
 
     campoNombreObra.focus();
-
   } catch (error) {
     mensaje.textContent = error.message;
   }
@@ -546,38 +519,32 @@ async function cambiarEstadoObra(obra) {
   }
 
   const confirmar = window.confirm(
-    `¿Querés cambiar el estado de "${obra.nombre_obra}" a "${nuevoEstado}"?`
+    `¿Querés cambiar el estado de "${obra.nombre_obra}" a "${nuevoEstado}"?`,
   );
 
   if (!confirmar) return;
 
   try {
-    const respuesta = await fetch(
-      `/obras/${obra.id_obra}/estado`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          estado: nuevoEstado,
-        }),
-      }
-    );
+    const respuesta = await fetch(`/obras/${obra.id_obra}/estado`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        estado: nuevoEstado,
+      }),
+    });
 
     const resultado = await leerRespuesta(respuesta);
 
     if (!respuesta.ok) {
-      throw new Error(
-        resultado.mensaje || "No se pudo cambiar el estado."
-      );
+      throw new Error(resultado.mensaje || "No se pudo cambiar el estado.");
     }
 
     mensaje.textContent =
       resultado.mensaje || "Estado actualizado correctamente.";
 
     await cargarObras();
-
   } catch (error) {
     mensaje.textContent = error.message;
   }
@@ -590,15 +557,10 @@ async function cambiarEstadoObra(obra) {
 buscarObra.addEventListener("input", mostrarObras);
 
 campoPresupuesto.addEventListener("input", () => {
-  if (
-    campoPresupuesto.value !== "" &&
-    Number(campoPresupuesto.value) < 0
-  ) {
-    errorPresupuesto.textContent =
-      "El presupuesto no puede ser negativo.";
+  if (campoPresupuesto.value !== "" && Number(campoPresupuesto.value) < 0) {
+    errorPresupuesto.textContent = "El presupuesto no puede ser negativo.";
 
     campoPresupuesto.classList.add("input-error");
-
   } else {
     errorPresupuesto.textContent = "";
     campoPresupuesto.classList.remove("input-error");
@@ -635,17 +597,13 @@ campoFechaFin.addEventListener("change", validarFechas);
 // REGISTRAR O MODIFICAR OBRA
 // ========================================
 
-formulario.addEventListener("submit", async event => {
+formulario.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   limpiarErrores();
 
   if (!campoCliente.value) {
-    mostrarError(
-      campoCliente,
-      errorCliente,
-      "Seleccioná un cliente."
-    );
+    mostrarError(campoCliente, errorCliente, "Seleccioná un cliente.");
     return;
   }
 
@@ -653,7 +611,7 @@ formulario.addEventListener("submit", async event => {
     mostrarError(
       campoNombreObra,
       errorNombreObra,
-      "Ingresá el nombre de la obra."
+      "Ingresá el nombre de la obra.",
     );
     return;
   }
@@ -666,7 +624,7 @@ formulario.addEventListener("submit", async event => {
     mostrarError(
       campoPresupuesto,
       errorPresupuesto,
-      "Ingresá un presupuesto válido igual o mayor que cero."
+      "Ingresá un presupuesto válido igual o mayor que cero.",
     );
     return;
   }
@@ -675,7 +633,7 @@ formulario.addEventListener("submit", async event => {
     mostrarError(
       !campoFechaInicio.value ? campoFechaInicio : campoFechaFin,
       errorFechas,
-      "Ingresá ambas fechas."
+      "Ingresá ambas fechas.",
     );
     return;
   }
@@ -685,21 +643,17 @@ formulario.addEventListener("submit", async event => {
     return;
   }
 
-  const datos = Object.fromEntries(
-    new FormData(formulario).entries()
-  );
+  const datos = Object.fromEntries(new FormData(formulario).entries());
 
   datos.id_cliente = Number(datos.id_cliente);
   datos.nombre_obra = datos.nombre_obra.trim();
-  datos.presupuesto_planificado = Number(
-    datos.presupuesto_planificado
-  );
+  datos.presupuesto_planificado = Number(datos.presupuesto_planificado);
 
   const esModificacion = obraEditandoId !== null;
 
   if (esModificacion) {
     const obraActual = obras.find(
-      obra => Number(obra.id_obra) === Number(obraEditandoId)
+      (obra) => Number(obra.id_obra) === Number(obraEditandoId),
     );
 
     if (!obraActual || obraBloqueada(obraActual)) {
@@ -713,9 +667,7 @@ formulario.addEventListener("submit", async event => {
     }
   }
 
-  const url = esModificacion
-    ? `/obras/${obraEditandoId}`
-    : "/obras";
+  const url = esModificacion ? `/obras/${obraEditandoId}` : "/obras";
 
   const metodo = esModificacion ? "PUT" : "POST";
 
@@ -739,13 +691,10 @@ formulario.addEventListener("submit", async event => {
     const resultado = await leerRespuesta(respuesta);
 
     if (!respuesta.ok) {
-      throw new Error(
-        resultado.mensaje || "No se pudo guardar la obra."
-      );
+      throw new Error(resultado.mensaje || "No se pudo guardar la obra.");
     }
 
-    mensaje.textContent =
-      resultado.mensaje || "Obra guardada correctamente.";
+    mensaje.textContent = resultado.mensaje || "Obra guardada correctamente.";
 
     obraEditandoId = null;
 
@@ -754,16 +703,13 @@ formulario.addEventListener("submit", async event => {
 
     formularioContenedor.classList.add("oculto");
 
-    document.getElementById("tituloFormulario").textContent =
-      "Registrar obra";
+    document.getElementById("tituloFormulario").textContent = "Registrar obra";
 
     botonGuardar.textContent = "Guardar obra";
 
     await cargarObras();
-
   } catch (error) {
     mensaje.textContent = error.message;
-
   } finally {
     botonGuardar.disabled = false;
   }
@@ -772,6 +718,31 @@ formulario.addEventListener("submit", async event => {
 // ==================================================
 // GESTIÓN DE TRABAJADORES
 // ==================================================
+
+// ========================================
+// CONFIGURAR PERSONAL SEGÚN ESTADO DE OBRA
+// ========================================
+
+function configurarPersonalSoloLectura(obra) {
+  personalSoloLectura = obraBloqueada(obra);
+
+  const subsecciones = panelPersonal.querySelectorAll(".subseccion");
+
+  // La primera subsección contiene el formulario.
+  // La segunda contiene el personal asignado.
+  // La tercera contiene el registro general.
+
+  if (subsecciones[0]) {
+    subsecciones[0].classList.toggle("oculto", personalSoloLectura);
+  }
+
+  if (subsecciones[2]) {
+    subsecciones[2].classList.toggle("oculto", personalSoloLectura);
+  }
+
+  // En obras cerradas se conserva visible la tabla
+  // de trabajadores asignados, pero sin acciones.
+}
 
 // ========================================
 // ABRIR PANEL DE PERSONAL
@@ -783,6 +754,8 @@ async function abrirPersonal(obra) {
   trabajadores = [];
   todosTrabajadores = [];
 
+  configurarPersonalSoloLectura(obra);
+
   document.getElementById("nombreObraPersonal").textContent =
     `Obra: ${obra.nombre_obra}`;
 
@@ -793,14 +766,28 @@ async function abrirPersonal(obra) {
 
   limpiarFormularioPersonal();
 
-  mostrarMensajePersonal("Cargando información del personal...");
+  if (personalSoloLectura) {
+    mostrarMensajePersonal(
+      "Obra cerrada: el personal asignado está disponible únicamente para consulta.",
+    );
+  } else {
+    mostrarMensajePersonal("Cargando información del personal...");
+  }
 
-  await Promise.all([
-    cargarTrabajadores(obra.id_obra),
-    cargarRegistroGeneral(),
-  ]);
+  const tareas = [cargarTrabajadores(obra.id_obra)];
 
-  mostrarMensajePersonal("");
+  if (!personalSoloLectura) {
+    tareas.push(cargarRegistroGeneral());
+  } else {
+    tablaRegistroPersonal.replaceChildren();
+    totalRegistroPersonal.textContent = "Consulta no disponible";
+  }
+
+  await Promise.all(tareas);
+
+  if (!personalSoloLectura) {
+    mostrarMensajePersonal("");
+  }
 
   panelPersonal.scrollIntoView({
     behavior: "smooth",
@@ -811,17 +798,22 @@ async function abrirPersonal(obra) {
 // CERRAR PANEL
 // ========================================
 
-document.getElementById("btnCerrarPersonal")
-  .addEventListener("click", () => {
-    panelPersonal.classList.add("oculto");
+document.getElementById("btnCerrarPersonal").addEventListener("click", () => {
+  panelPersonal.classList.add("oculto");
 
-    limpiarFormularioPersonal();
+  limpiarFormularioPersonal();
 
-    obraPersonalActual = null;
+  // Restaurar la visibilidad de las subsecciones
+  panelPersonal
+    .querySelectorAll(".subseccion")
+    .forEach((seccion) => seccion.classList.remove("oculto"));
 
-    trabajadores = [];
-    todosTrabajadores = [];
-  });
+  obraPersonalActual = null;
+  personalSoloLectura = false;
+
+  trabajadores = [];
+  todosTrabajadores = [];
+});
 
 // ========================================
 // CARGAR PERSONAL ASIGNADO A LA OBRA
@@ -832,22 +824,19 @@ async function cargarTrabajadores(id_obra) {
     '<tr><td colspan="7">Cargando trabajadores...</td></tr>';
 
   try {
-    const respuesta = await fetch(
-      `/obras/${id_obra}/trabajadores`
-    );
+    const respuesta = await fetch(`/obras/${id_obra}/trabajadores`);
 
     const datos = await leerRespuesta(respuesta);
 
     if (!respuesta.ok || !Array.isArray(datos)) {
       throw new Error(
-        datos.mensaje || "No se pudieron cargar los trabajadores de la obra."
+        datos.mensaje || "No se pudieron cargar los trabajadores de la obra.",
       );
     }
 
     trabajadores = datos;
 
     mostrarTrabajadores();
-
   } catch (error) {
     trabajadores = [];
 
@@ -873,14 +862,13 @@ async function cargarRegistroGeneral() {
 
     if (!respuesta.ok || !Array.isArray(datos)) {
       throw new Error(
-        datos.mensaje || "No se pudo cargar el registro general."
+        datos.mensaje || "No se pudo cargar el registro general.",
       );
     }
 
     todosTrabajadores = datos;
 
     mostrarRegistroGeneral();
-
   } catch (error) {
     todosTrabajadores = [];
 
@@ -898,16 +886,15 @@ async function cargarRegistroGeneral() {
 function mostrarTrabajadores() {
   tablaPersonal.replaceChildren();
 
-  totalPersonal.textContent =
-    `${trabajadores.length} ${
-      trabajadores.length === 1 ? "trabajador" : "trabajadores"
-    }`;
+  totalPersonal.textContent = `${trabajadores.length} ${
+    trabajadores.length === 1 ? "trabajador" : "trabajadores"
+  }`;
 
   if (trabajadores.length === 0) {
     const fila = document.createElement("tr");
 
     const celda = crearCelda(
-      "Esta obra todavía no tiene trabajadores asignados."
+      "Esta obra todavía no tiene trabajadores asignados.",
     );
 
     celda.colSpan = 7;
@@ -918,7 +905,7 @@ function mostrarTrabajadores() {
     return;
   }
 
-  trabajadores.forEach(trabajador => {
+  trabajadores.forEach((trabajador) => {
     const fila = document.createElement("tr");
 
     const valores = [
@@ -930,26 +917,30 @@ function mostrarTrabajadores() {
       trabajador.direccion,
     ];
 
-    valores.forEach(valor => {
+    valores.forEach((valor) => {
       fila.appendChild(crearCelda(valor));
     });
 
-    // Acciones
     const celdaAcciones = document.createElement("td");
 
-    const botonModificar = crearBotonIcono(
-      "pencil",
-      "Modificar trabajador"
-    );
+    if (personalSoloLectura) {
+      const etiqueta = document.createElement("span");
 
-    botonModificar.addEventListener("click", () => {
-      prepararModificacionPersonal(trabajador);
-    });
+      etiqueta.textContent = "Solo consulta";
+      etiqueta.className = "estado-finalizada";
 
-    celdaAcciones.appendChild(botonModificar);
+      celdaAcciones.appendChild(etiqueta);
+    } else {
+      const botonModificar = crearBotonIcono("pencil", "Modificar trabajador");
+
+      botonModificar.addEventListener("click", () => {
+        prepararModificacionPersonal(trabajador);
+      });
+
+      celdaAcciones.appendChild(botonModificar);
+    }
 
     fila.appendChild(celdaAcciones);
-
     tablaPersonal.appendChild(fila);
   });
 
@@ -963,18 +954,32 @@ function mostrarTrabajadores() {
 function mostrarRegistroGeneral() {
   tablaRegistroPersonal.replaceChildren();
 
-  totalRegistroPersonal.textContent =
-    `${todosTrabajadores.length} ${
-      todosTrabajadores.length === 1
-        ? "trabajador registrado"
-        : "trabajadores registrados"
-    }`;
+  const busqueda = normalizarTexto(buscarPersonalRegistro?.value);
 
-  if (todosTrabajadores.length === 0) {
+  const trabajadoresFiltrados = todosTrabajadores.filter((trabajador) => {
+    return [
+      trabajador.id_personal,
+      trabajador.nombre_trabajador,
+      trabajador.cargo,
+      trabajador.telefono,
+      trabajador.gmail,
+      trabajador.direccion,
+    ].some((valor) => normalizarTexto(valor).includes(busqueda));
+  });
+
+  totalRegistroPersonal.textContent = `${trabajadoresFiltrados.length} ${
+    trabajadoresFiltrados.length === 1
+      ? "trabajador registrado"
+      : "trabajadores registrados"
+  }`;
+
+  if (trabajadoresFiltrados.length === 0) {
     const fila = document.createElement("tr");
 
     const celda = crearCelda(
-      "Todavía no hay trabajadores registrados."
+      todosTrabajadores.length === 0
+        ? "Todavía no hay trabajadores registrados."
+        : "No se encontraron trabajadores.",
     );
 
     celda.colSpan = 7;
@@ -985,7 +990,7 @@ function mostrarRegistroGeneral() {
     return;
   }
 
-  todosTrabajadores.forEach(trabajador => {
+  trabajadoresFiltrados.forEach((trabajador) => {
     const fila = document.createElement("tr");
 
     const valores = [
@@ -997,17 +1002,15 @@ function mostrarRegistroGeneral() {
       trabajador.direccion,
     ];
 
-    valores.forEach(valor => {
+    valores.forEach((valor) => {
       fila.appendChild(crearCelda(valor));
     });
 
     const celdaAcciones = document.createElement("td");
 
-    // Verificar si ya está asignado a esta obra
     const yaAsignado = trabajadores.some(
-      asignado =>
-        Number(asignado.id_personal) ===
-        Number(trabajador.id_personal)
+      (asignado) =>
+        Number(asignado.id_personal) === Number(trabajador.id_personal),
     );
 
     if (yaAsignado) {
@@ -1017,7 +1020,6 @@ function mostrarRegistroGeneral() {
       etiqueta.className = "estado-finalizada";
 
       celdaAcciones.appendChild(etiqueta);
-
     } else if (obraBloqueada(obraPersonalActual)) {
       const etiqueta = document.createElement("span");
 
@@ -1025,7 +1027,6 @@ function mostrarRegistroGeneral() {
       etiqueta.className = "estado-finalizada";
 
       celdaAcciones.appendChild(etiqueta);
-
     } else {
       const botonAsignar = document.createElement("button");
 
@@ -1041,11 +1042,15 @@ function mostrarRegistroGeneral() {
     }
 
     fila.appendChild(celdaAcciones);
-
     tablaRegistroPersonal.appendChild(fila);
   });
 
   actualizarIconos();
+}
+
+// Buscar en el registro general
+if (buscarPersonalRegistro) {
+  buscarPersonalRegistro.addEventListener("input", mostrarRegistroGeneral);
 }
 
 // ========================================
@@ -1058,30 +1063,25 @@ async function asignarTrabajador(trabajador) {
     return;
   }
 
-  // No permitir asignaciones en obras finalizadas o canceladas
-  if (obraBloqueada(obraPersonalActual)) {
+  if (personalSoloLectura || obraBloqueada(obraPersonalActual)) {
     mostrarMensajePersonal(
-      "No se pueden asignar trabajadores a una obra finalizada o cancelada."
+      "No se pueden asignar trabajadores a una obra finalizada o cancelada.",
     );
     return;
   }
 
-  // Verificar duplicados antes de enviar al servidor
   const yaAsignado = trabajadores.some(
-    asignado =>
-      Number(asignado.id_personal) ===
-      Number(trabajador.id_personal)
+    (asignado) =>
+      Number(asignado.id_personal) === Number(trabajador.id_personal),
   );
 
   if (yaAsignado) {
-    mostrarMensajePersonal(
-      "Este trabajador ya está asignado a esta obra."
-    );
+    mostrarMensajePersonal("Este trabajador ya está asignado a esta obra.");
     return;
   }
 
   const confirmar = window.confirm(
-    `¿Querés asignar a ${trabajador.nombre_trabajador} a la obra "${obraPersonalActual.nombre_obra}"?`
+    `¿Querés asignar a ${trabajador.nombre_trabajador} a la obra "${obraPersonalActual.nombre_obra}"?`,
   );
 
   if (!confirmar) return;
@@ -1097,26 +1097,23 @@ async function asignarTrabajador(trabajador) {
         body: JSON.stringify({
           id_personal: Number(trabajador.id_personal),
         }),
-      }
+      },
     );
 
     const resultado = await leerRespuesta(respuesta);
 
     if (!respuesta.ok) {
-      throw new Error(
-        resultado.mensaje || "No se pudo asignar el trabajador."
-      );
+      throw new Error(resultado.mensaje || "No se pudo asignar el trabajador.");
     }
 
     mostrarMensajePersonal(
-      resultado.mensaje || "Trabajador asignado correctamente."
+      resultado.mensaje || "Trabajador asignado correctamente.",
     );
 
     await Promise.all([
       cargarTrabajadores(obraPersonalActual.id_obra),
       cargarRegistroGeneral(),
     ]);
-
   } catch (error) {
     mostrarMensajePersonal(error.message);
   }
@@ -1144,36 +1141,40 @@ function limpiarFormularioPersonal() {
 // CANCELAR FORMULARIO
 // ========================================
 
-document.getElementById("btnCancelarPersonal")
-  .addEventListener("click", limpiarFormularioPersonal);
+document.getElementById("btnCancelarPersonal").addEventListener("click", () => {
+  if (personalSoloLectura) return;
+
+  limpiarFormularioPersonal();
+});
 
 // ========================================
 // PREPARAR MODIFICACIÓN
 // ========================================
 
 function prepararModificacionPersonal(trabajador) {
+  if (personalSoloLectura || obraBloqueada(obraPersonalActual)) {
+    mostrarMensajePersonal(
+      "No se puede modificar personal de una obra finalizada o cancelada.",
+    );
+    return;
+  }
+
   idPersonal.value = trabajador.id_personal;
 
-  nombreTrabajador.value =
-    trabajador.nombre_trabajador || "";
+  nombreTrabajador.value = trabajador.nombre_trabajador || "";
 
-  cargoTrabajador.value =
-    trabajador.cargo || "";
+  cargoTrabajador.value = trabajador.cargo || "";
 
-  telefonoTrabajador.value =
-    trabajador.telefono || "";
+  telefonoTrabajador.value = trabajador.telefono || "";
 
-  gmailTrabajador.value =
-    trabajador.gmail || "";
+  gmailTrabajador.value = trabajador.gmail || "";
 
-  direccionTrabajador.value =
-    trabajador.direccion || "";
+  direccionTrabajador.value = trabajador.direccion || "";
 
   document.getElementById("tituloFormularioPersonal").textContent =
     "Modificar trabajador";
 
-  document.getElementById("btnGuardarPersonal").textContent =
-    "Guardar cambios";
+  document.getElementById("btnGuardarPersonal").textContent = "Guardar cambios";
 
   formularioPersonal.scrollIntoView({
     behavior: "smooth",
@@ -1186,8 +1187,16 @@ function prepararModificacionPersonal(trabajador) {
 // REGISTRAR O MODIFICAR TRABAJADOR
 // ========================================
 
-formularioPersonal.addEventListener("submit", async event => {
+formularioPersonal.addEventListener("submit", async (event) => {
   event.preventDefault();
+
+  // Protección adicional para obras cerradas
+  if (personalSoloLectura || obraBloqueada(obraPersonalActual)) {
+    mostrarMensajePersonal(
+      "No se puede registrar ni modificar personal en una obra finalizada o cancelada.",
+    );
+    return;
+  }
 
   const datos = {
     nombre_trabajador: nombreTrabajador.value.trim(),
@@ -1197,14 +1206,8 @@ formularioPersonal.addEventListener("submit", async event => {
     direccion: direccionTrabajador.value.trim() || null,
   };
 
-  if (
-    !datos.nombre_trabajador ||
-    !datos.cargo ||
-    !datos.telefono
-  ) {
-    mostrarMensajePersonal(
-      "Completá el nombre, el cargo y el teléfono."
-    );
+  if (!datos.nombre_trabajador || !datos.cargo || !datos.telefono) {
+    mostrarMensajePersonal("Completá el nombre, el cargo y el teléfono.");
 
     return;
   }
@@ -1217,15 +1220,12 @@ formularioPersonal.addEventListener("submit", async event => {
 
   const metodo = esModificacion ? "PUT" : "POST";
 
-  const botonGuardar =
-    document.getElementById("btnGuardarPersonal");
+  const botonGuardar = document.getElementById("btnGuardarPersonal");
 
   botonGuardar.disabled = true;
 
   mostrarMensajePersonal(
-    esModificacion
-      ? "Guardando cambios..."
-      : "Registrando trabajador..."
+    esModificacion ? "Guardando cambios..." : "Registrando trabajador...",
   );
 
   try {
@@ -1240,27 +1240,22 @@ formularioPersonal.addEventListener("submit", async event => {
     const resultado = await leerRespuesta(respuesta);
 
     if (!respuesta.ok) {
-      throw new Error(
-        resultado.mensaje || "No se pudo guardar el trabajador."
-      );
+      throw new Error(resultado.mensaje || "No se pudo guardar el trabajador.");
     }
 
     mostrarMensajePersonal(
-      resultado.mensaje || "Trabajador guardado correctamente."
+      resultado.mensaje || "Trabajador guardado correctamente.",
     );
 
     limpiarFormularioPersonal();
 
-    // Actualizar las dos tablas
     await cargarRegistroGeneral();
 
     if (obraPersonalActual) {
       await cargarTrabajadores(obraPersonalActual.id_obra);
     }
-
   } catch (error) {
     mostrarMensajePersonal(error.message);
-
   } finally {
     botonGuardar.disabled = false;
   }
@@ -1287,35 +1282,61 @@ async function abrirPanelMateriales(obra) {
   solicitudesObra = [];
   movimientosObra = [];
 
-  mostrarDetalleSolicitud();
+  const soloConsulta = obraBloqueada(obra);
 
-  document.getElementById("tituloMateriales").textContent =
-    "Materiales de la obra";
+  document.getElementById("tituloMateriales").textContent = soloConsulta
+    ? "Historial de materiales"
+    : "Materiales de la obra";
 
   document.getElementById("nombreObraMateriales").textContent =
     obra.nombre_obra;
 
   formularioContenedor.classList.add("oculto");
   panelPersonal.classList.add("oculto");
-
   panelMateriales.classList.remove("oculto");
 
-  selectorMaterial.disabled = true;
-  selectorMaterial.innerHTML =
-    '<option value="">Cargando materiales...</option>';
+  const pestanaSolicitar = document.querySelector(
+    '.pestana-material[data-pestana="solicitar"]',
+  );
+
+  if (pestanaSolicitar) {
+    pestanaSolicitar.classList.toggle("oculto", soloConsulta);
+  }
+
+  selectorMaterial.disabled = soloConsulta;
+  cantidadMaterial.disabled = soloConsulta;
+  observacionSolicitud.disabled = soloConsulta;
+  btnAgregarMaterial.disabled = soloConsulta;
+  btnEnviarSolicitud.disabled = soloConsulta;
+
+  materialesSolicitud = [];
+
+  formularioSolicitudMateriales.reset();
 
   cantidadMaterial.value = 1;
-  observacionSolicitud.value = "";
+
+  mostrarDetalleSolicitud();
 
   mostrarMensajeMateriales("");
 
   try {
-    await Promise.all([
-      cargarMaterialesDisponibles(),
-      cargarSolicitudesObra(),
-      cargarHistorialEntregas(),
-    ]);
+    const tareas = [cargarSolicitudesObra(), cargarHistorialEntregas()];
 
+    if (!soloConsulta) {
+      tareas.push(cargarMaterialesDisponibles());
+    } else {
+      selectorMaterial.replaceChildren();
+
+      const opcion = document.createElement("option");
+      opcion.value = "";
+      opcion.textContent = "Consulta no disponible";
+
+      selectorMaterial.appendChild(opcion);
+    }
+
+    await Promise.all(tareas);
+
+    cambiarPestanaMaterial(soloConsulta ? "solicitudes" : "solicitar");
   } catch (error) {
     mostrarMensajeMateriales(error.message);
   }
@@ -1329,11 +1350,16 @@ async function abrirPanelMateriales(obra) {
 // CERRAR PANEL DE MATERIALES
 // ========================================
 
-document.getElementById("btnCerrarMateriales")
-  .addEventListener("click", () => {
-    panelMateriales.classList.add("oculto");
-    obraMaterialesActual = null;
-  });
+document.getElementById("btnCerrarMateriales").addEventListener("click", () => {
+  panelMateriales.classList.add("oculto");
+
+  obraMaterialesActual = null;
+
+  materialesSolicitud = [];
+  materialesDisponibles = [];
+  solicitudesObra = [];
+  movimientosObra = [];
+});
 
 // ========================================
 // CARGAR MATERIALES DISPONIBLES
@@ -1350,7 +1376,7 @@ async function cargarMaterialesDisponibles() {
   }
 
   materialesDisponibles = datos.filter(
-    material => Number(material.stock_actual) > 0
+    (material) => Number(material.stock_actual) > 0,
   );
 
   selectorMaterial.replaceChildren();
@@ -1362,20 +1388,24 @@ async function cargarMaterialesDisponibles() {
 
   selectorMaterial.appendChild(opcionInicial);
 
-  materialesDisponibles.forEach(material => {
+  materialesDisponibles.forEach((material) => {
     const opcion = document.createElement("option");
 
     opcion.value = material.id_material;
 
-    opcion.textContent =
-      `${material.nombre} (Stock: ${material.stock_actual})`;
+    opcion.textContent = `${material.nombre} (Stock: ${material.stock_actual})`;
 
     selectorMaterial.appendChild(opcion);
   });
 
   if (materialesDisponibles.length === 0) {
-    selectorMaterial.innerHTML =
-      '<option value="">No hay materiales disponibles</option>';
+    selectorMaterial.replaceChildren();
+
+    const opcion = document.createElement("option");
+    opcion.value = "";
+    opcion.textContent = "No hay materiales disponibles";
+
+    selectorMaterial.appendChild(opcion);
   }
 
   selectorMaterial.disabled = materialesDisponibles.length === 0;
@@ -1416,6 +1446,8 @@ function mostrarDetalleSolicitud() {
     botonEliminar.className = "btn-secundario";
 
     botonEliminar.addEventListener("click", () => {
+      if (obraBloqueada(obraMaterialesActual)) return;
+
       materialesSolicitud.splice(indice, 1);
       mostrarDetalleSolicitud();
     });
@@ -1435,13 +1467,18 @@ function mostrarDetalleSolicitud() {
 btnAgregarMaterial.addEventListener("click", () => {
   mostrarMensajeMateriales("");
 
+  if (obraBloqueada(obraMaterialesActual)) {
+    mostrarMensajeMateriales(
+      "No se pueden agregar materiales a una obra cerrada.",
+    );
+    return;
+  }
+
   const idMaterial = selectorMaterial.value;
   const cantidad = Number(cantidadMaterial.value);
 
   if (!idMaterial) {
-    mostrarMensajeMateriales(
-      "Seleccioná un material del inventario."
-    );
+    mostrarMensajeMateriales("Seleccioná un material del inventario.");
 
     selectorMaterial.focus();
     return;
@@ -1452,29 +1489,25 @@ btnAgregarMaterial.addEventListener("click", () => {
     !Number.isInteger(cantidad) ||
     cantidad <= 0
   ) {
-    mostrarMensajeMateriales(
-      "Ingresá una cantidad entera mayor que cero."
-    );
+    mostrarMensajeMateriales("Ingresá una cantidad entera mayor que cero.");
 
     cantidadMaterial.focus();
     return;
   }
 
   const material = materialesDisponibles.find(
-    item => String(item.id_material) === String(idMaterial)
+    (item) => String(item.id_material) === String(idMaterial),
   );
 
   if (!material) {
-    mostrarMensajeMateriales(
-      "El material seleccionado no está disponible."
-    );
+    mostrarMensajeMateriales("El material seleccionado no está disponible.");
     return;
   }
 
   const stock = Number(material.stock_actual);
 
   const materialExistente = materialesSolicitud.find(
-    item => String(item.id_material) === String(idMaterial)
+    (item) => String(item.id_material) === String(idMaterial),
   );
 
   const cantidadAcumulada =
@@ -1484,14 +1517,13 @@ btnAgregarMaterial.addEventListener("click", () => {
     mostrarMensajeMateriales(
       `Stock insuficiente. Disponible: ${stock}. Ya agregaste: ${
         materialExistente ? materialExistente.cantidad : 0
-      }.`
+      }.`,
     );
     return;
   }
 
   if (materialExistente) {
     materialExistente.cantidad = cantidadAcumulada;
-
   } else {
     materialesSolicitud.push({
       id_material: material.id_material,
@@ -1506,107 +1538,103 @@ btnAgregarMaterial.addEventListener("click", () => {
   selectorMaterial.value = "";
   cantidadMaterial.value = 1;
 
-  mostrarMensajeMateriales(
-    "Material agregado a la lista correctamente."
-  );
+  mostrarMensajeMateriales("Material agregado a la lista correctamente.");
 });
 
 // ========================================
 // REGISTRAR SOLICITUD DE MATERIALES
 // ========================================
 
-formularioSolicitudMateriales.addEventListener(
-  "submit",
-  async event => {
-    event.preventDefault();
+formularioSolicitudMateriales.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-    if (!obraMaterialesActual) {
-      mostrarMensajeMateriales("No se seleccionó una obra.");
-      return;
-    }
-
-    if (materialesSolicitud.length === 0) {
-      mostrarMensajeMateriales(
-        "Agregá al menos un material a la solicitud."
-      );
-      return;
-    }
-
-    const datos = {
-      id_obra: Number(obraMaterialesActual.id_obra),
-      observacion: observacionSolicitud.value.trim(),
-      detalles: materialesSolicitud.map(item => ({
-        id_material: Number(item.id_material),
-        cantidad_solicitada: Number(item.cantidad),
-      })),
-    };
-
-    btnEnviarSolicitud.disabled = true;
-
-    mostrarMensajeMateriales("Registrando solicitud...");
-
-    try {
-      const respuesta = await fetch(
-        "/materiales/solicitudes",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(datos),
-        }
-      );
-
-      const resultado = await leerRespuesta(respuesta);
-
-      if (!respuesta.ok) {
-        throw new Error(
-          resultado.mensaje || "No se pudo registrar la solicitud."
-        );
-      }
-
-      materialesSolicitud = [];
-
-      formularioSolicitudMateriales.reset();
-
-      cantidadMaterial.value = 1;
-
-      mostrarDetalleSolicitud();
-
-      mostrarMensajeMateriales(
-        resultado.mensaje || "Solicitud registrada correctamente."
-      );
-
-      await Promise.all([
-        cargarSolicitudesObra(),
-        cargarMaterialesDisponibles(),
-      ]);
-
-    } catch (error) {
-      mostrarMensajeMateriales(error.message);
-
-    } finally {
-      btnEnviarSolicitud.disabled = false;
-    }
+  if (!obraMaterialesActual) {
+    mostrarMensajeMateriales("No se seleccionó una obra.");
+    return;
   }
-);
+
+  if (obraBloqueada(obraMaterialesActual)) {
+    mostrarMensajeMateriales(
+      "No se pueden registrar solicitudes en una obra finalizada o cancelada.",
+    );
+    return;
+  }
+
+  if (materialesSolicitud.length === 0) {
+    mostrarMensajeMateriales("Agregá al menos un material a la solicitud.");
+    return;
+  }
+
+  const datos = {
+    id_obra: Number(obraMaterialesActual.id_obra),
+    observacion: observacionSolicitud.value.trim(),
+    detalles: materialesSolicitud.map((item) => ({
+      id_material: Number(item.id_material),
+      cantidad_solicitada: Number(item.cantidad),
+    })),
+  };
+
+  btnEnviarSolicitud.disabled = true;
+
+  mostrarMensajeMateriales("Registrando solicitud...");
+
+  try {
+    const respuesta = await fetch("/materiales/solicitudes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(datos),
+    });
+
+    const resultado = await leerRespuesta(respuesta);
+
+    if (!respuesta.ok) {
+      throw new Error(
+        resultado.mensaje || "No se pudo registrar la solicitud.",
+      );
+    }
+
+    materialesSolicitud = [];
+
+    formularioSolicitudMateriales.reset();
+
+    cantidadMaterial.value = 1;
+
+    mostrarDetalleSolicitud();
+
+    mostrarMensajeMateriales(
+      resultado.mensaje || "Solicitud registrada correctamente.",
+    );
+
+    await Promise.all([cargarSolicitudesObra(), cargarMaterialesDisponibles()]);
+  } catch (error) {
+    mostrarMensajeMateriales(error.message);
+  } finally {
+    btnEnviarSolicitud.disabled = false;
+  }
+});
 
 // ========================================
 // PESTAÑAS DE MATERIALES
 // ========================================
 
 function cambiarPestanaMaterial(nombrePestana) {
+  if (
+    nombrePestana === "solicitar" &&
+    obraMaterialesActual &&
+    obraBloqueada(obraMaterialesActual)
+  ) {
+    return;
+  }
+
   const pestanas = document.querySelectorAll(".pestana-material");
 
-  pestanas.forEach(pestana => {
-    const seleccionada =
-      pestana.dataset.pestana === nombrePestana;
+  pestanas.forEach((pestana) => {
+    const seleccionada = pestana.dataset.pestana === nombrePestana;
 
     pestana.classList.toggle("activa", seleccionada);
-    pestana.setAttribute(
-      "aria-selected",
-      seleccionada ? "true" : "false"
-    );
+    pestana.setAttribute("aria-selected", seleccionada ? "true" : "false");
   });
 
   const contenidos = {
@@ -1619,10 +1647,7 @@ function cambiarPestanaMaterial(nombrePestana) {
     const contenido = document.getElementById(id);
 
     if (contenido) {
-      contenido.classList.toggle(
-        "oculto",
-        nombre !== nombrePestana
-      );
+      contenido.classList.toggle("oculto", nombre !== nombrePestana);
     }
   });
 
@@ -1635,12 +1660,11 @@ function cambiarPestanaMaterial(nombrePestana) {
   }
 }
 
-document.querySelectorAll(".pestana-material")
-  .forEach(pestana => {
-    pestana.addEventListener("click", () => {
-      cambiarPestanaMaterial(pestana.dataset.pestana);
-    });
+document.querySelectorAll(".pestana-material").forEach((pestana) => {
+  pestana.addEventListener("click", () => {
+    cambiarPestanaMaterial(pestana.dataset.pestana);
   });
+});
 
 // ========================================
 // LISTAR SOLICITUDES DE LA OBRA
@@ -1662,13 +1686,11 @@ async function cargarSolicitudesObra() {
     }
 
     solicitudesObra = datos.filter(
-      solicitud =>
-        Number(solicitud.id_obra) ===
-        Number(obraMaterialesActual.id_obra)
+      (solicitud) =>
+        Number(solicitud.id_obra) === Number(obraMaterialesActual.id_obra),
     );
 
     mostrarSolicitudesObra();
-
   } catch (error) {
     tablaSolicitudes.innerHTML =
       '<tr><td colspan="5">Error al cargar las solicitudes.</td></tr>';
@@ -1686,9 +1708,7 @@ function mostrarSolicitudesObra() {
 
   if (solicitudesObra.length === 0) {
     const fila = document.createElement("tr");
-    const celda = crearCelda(
-      "Esta obra todavía no tiene solicitudes."
-    );
+    const celda = crearCelda("Esta obra todavía no tiene solicitudes.");
 
     celda.colSpan = 5;
 
@@ -1698,11 +1718,13 @@ function mostrarSolicitudesObra() {
     return;
   }
 
-  solicitudesObra.forEach(solicitud => {
+  solicitudesObra.forEach((solicitud) => {
     const fila = document.createElement("tr");
 
     fila.appendChild(crearCelda(solicitud.id_solicitud));
+
     fila.appendChild(crearCelda(formatearFecha(solicitud.fecha_solicitud)));
+
     fila.appendChild(crearCelda(solicitud.usuario_solicitante));
 
     const celdaEstado = document.createElement("td");
@@ -1710,8 +1732,7 @@ function mostrarSolicitudesObra() {
 
     etiqueta.textContent = solicitud.estado || "Pendiente";
 
-    etiqueta.className =
-      `estado-${normalizarTexto(solicitud.estado).replace(/\s+/g, "-")}`;
+    etiqueta.className = `estado-${normalizarTexto(solicitud.estado).replace(/\s+/g, "-")}`;
 
     celdaEstado.appendChild(etiqueta);
     fila.appendChild(celdaEstado);
@@ -1720,8 +1741,7 @@ function mostrarSolicitudesObra() {
 
     const textoCantidad = document.createElement("span");
 
-    textoCantidad.textContent =
-      `${solicitud.cantidad_items || 0} material(es) `;
+    textoCantidad.textContent = `${solicitud.cantidad_items || 0} material(es) `;
 
     celdaDetalles.appendChild(textoCantidad);
 
@@ -1736,48 +1756,6 @@ function mostrarSolicitudesObra() {
     });
 
     celdaDetalles.appendChild(botonVer);
-
-    if (solicitud.estado === "Pendiente") {
-      const botonAprobar = document.createElement("button");
-
-      botonAprobar.type = "button";
-      botonAprobar.textContent = "Aprobar";
-      botonAprobar.className = "btn-secundario";
-
-      botonAprobar.addEventListener("click", () => {
-        aprobarSolicitudMateriales(solicitud.id_solicitud);
-      });
-
-      const botonRechazar = document.createElement("button");
-
-      botonRechazar.type = "button";
-      botonRechazar.textContent = "Rechazar";
-      botonRechazar.className = "btn-secundario";
-
-      botonRechazar.addEventListener("click", () => {
-        rechazarSolicitudMateriales(solicitud.id_solicitud);
-      });
-
-      celdaDetalles.append(
-        botonAprobar,
-        botonRechazar
-      );
-    }
-
-    if (solicitud.estado === "Aprobada") {
-      const botonEntregar = document.createElement("button");
-
-      botonEntregar.type = "button";
-      botonEntregar.textContent = "Registrar entrega";
-      botonEntregar.className = "btn-secundario";
-
-      botonEntregar.addEventListener("click", () => {
-        registrarEntregaMateriales(solicitud.id_solicitud);
-      });
-
-      celdaDetalles.appendChild(botonEntregar);
-    }
-
     fila.appendChild(celdaDetalles);
 
     tablaSolicitudes.appendChild(fila);
@@ -1800,9 +1778,7 @@ async function verDetallesSolicitud(idSolicitud, filaPrincipal) {
   }
 
   try {
-    const respuesta = await fetch(
-      `/materiales/solicitudes/${idSolicitud}`
-    );
+    const respuesta = await fetch(`/materiales/solicitudes/${idSolicitud}`);
 
     const detalles = await leerRespuesta(respuesta);
 
@@ -1822,24 +1798,20 @@ async function verDetallesSolicitud(idSolicitud, filaPrincipal) {
     const encabezado = document.createElement("thead");
     const filaEncabezado = document.createElement("tr");
 
-    [
-      "Material",
-      "Solicitado",
-      "Aprobado",
-      "Entregado",
-      "Pendiente",
-    ].forEach(texto => {
-      const th = document.createElement("th");
-      th.textContent = texto;
-      filaEncabezado.appendChild(th);
-    });
+    ["Material", "Solicitado", "Aprobado", "Entregado", "Pendiente"].forEach(
+      (texto) => {
+        const th = document.createElement("th");
+        th.textContent = texto;
+        filaEncabezado.appendChild(th);
+      },
+    );
 
     encabezado.appendChild(filaEncabezado);
     tabla.appendChild(encabezado);
 
     const cuerpo = document.createElement("tbody");
 
-    detalles.forEach(detalle => {
+    detalles.forEach((detalle) => {
       const fila = document.createElement("tr");
 
       const solicitado = Number(detalle.cantidad_solicitada) || 0;
@@ -1854,7 +1826,7 @@ async function verDetallesSolicitud(idSolicitud, filaPrincipal) {
         Math.max(0, aprobado - entregado),
       ];
 
-      valores.forEach(valor => {
+      valores.forEach((valor) => {
         const celdaDetalle = document.createElement("td");
         celdaDetalle.textContent = valor ?? "—";
         fila.appendChild(celdaDetalle);
@@ -1869,240 +1841,6 @@ async function verDetallesSolicitud(idSolicitud, filaPrincipal) {
     filaDetalle.appendChild(celda);
 
     filaPrincipal.after(filaDetalle);
-
-  } catch (error) {
-    mostrarMensajeMateriales(error.message);
-  }
-}
-
-// ========================================
-// APROBAR SOLICITUD
-// ========================================
-
-async function aprobarSolicitudMateriales(idSolicitud) {
-  try {
-    const respuesta = await fetch(
-      `/materiales/solicitudes/${idSolicitud}`
-    );
-
-    const detalles = await leerRespuesta(respuesta);
-
-    if (!respuesta.ok || !Array.isArray(detalles) || detalles.length === 0) {
-      throw new Error("No se pudieron consultar los materiales.");
-    }
-
-    const cantidades = [];
-
-    for (const detalle of detalles) {
-      const solicitada = Number(detalle.cantidad_solicitada);
-
-      const respuestaCantidad = window.prompt(
-        `Material: ${detalle.nombre_material}\n` +
-        `Cantidad solicitada: ${solicitada}\n\n` +
-        "Ingresá la cantidad que querés aprobar:"
-      );
-
-      if (respuestaCantidad === null) return;
-
-      if (
-        respuestaCantidad.trim() === "" ||
-        !Number.isInteger(Number(respuestaCantidad)) ||
-        Number(respuestaCantidad) < 0 ||
-        Number(respuestaCantidad) > solicitada
-      ) {
-        alert(
-          `La cantidad aprobada debe ser un número entero entre 0 y ${solicitada}.`
-        );
-        return;
-      }
-
-      cantidades.push({
-        id_detalle: Number(detalle.id_detalle),
-        cantidad_aprobada: Number(respuestaCantidad),
-      });
-    }
-
-    if (!cantidades.some(item => item.cantidad_aprobada > 0)) {
-      alert("Debés aprobar al menos un material con cantidad mayor a cero.");
-      return;
-    }
-
-    const confirmar = window.confirm(
-      "¿Confirmás la aprobación de esta solicitud?"
-    );
-
-    if (!confirmar) return;
-
-    const respuestaAprobacion = await fetch(
-      `/materiales/solicitudes/${idSolicitud}/aprobar`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          detalles: cantidades,
-        }),
-      }
-    );
-
-    const resultado = await leerRespuesta(respuestaAprobacion);
-
-    if (!respuestaAprobacion.ok) {
-      throw new Error(
-        resultado.mensaje || "No se pudo aprobar la solicitud."
-      );
-    }
-
-    mostrarMensajeMateriales(
-      resultado.mensaje || "Solicitud aprobada correctamente."
-    );
-
-    await cargarSolicitudesObra();
-
-  } catch (error) {
-    mostrarMensajeMateriales(error.message);
-  }
-}
-
-// ========================================
-// RECHAZAR SOLICITUD
-// ========================================
-
-async function rechazarSolicitudMateriales(idSolicitud) {
-  const confirmar = window.confirm(
-    "¿Estás seguro de que querés rechazar esta solicitud?"
-  );
-
-  if (!confirmar) return;
-
-  try {
-    const respuesta = await fetch(
-      `/materiales/solicitudes/${idSolicitud}/rechazar`,
-      {
-        method: "PATCH",
-      }
-    );
-
-    const resultado = await leerRespuesta(respuesta);
-
-    if (!respuesta.ok) {
-      throw new Error(
-        resultado.mensaje || "No se pudo rechazar la solicitud."
-      );
-    }
-
-    mostrarMensajeMateriales(
-      resultado.mensaje || "Solicitud rechazada correctamente."
-    );
-
-    await cargarSolicitudesObra();
-
-  } catch (error) {
-    mostrarMensajeMateriales(error.message);
-  }
-}
-
-// ========================================
-// REGISTRAR ENTREGA DE MATERIALES
-// ========================================
-
-async function registrarEntregaMateriales(idSolicitud) {
-  try {
-    const respuesta = await fetch(
-      `/materiales/solicitudes/${idSolicitud}`
-    );
-
-    const detalles = await leerRespuesta(respuesta);
-
-    if (!respuesta.ok || !Array.isArray(detalles) || detalles.length === 0) {
-      throw new Error("No se pudieron consultar los materiales.");
-    }
-
-    const cantidades = [];
-
-    for (const detalle of detalles) {
-      const aprobado = Number(detalle.cantidad_aprobada) || 0;
-      const entregado = Number(detalle.cantidad_entregada) || 0;
-
-      const pendiente = aprobado - entregado;
-
-      if (pendiente <= 0) continue;
-
-      const respuestaCantidad = window.prompt(
-        `Material: ${detalle.nombre_material}\n` +
-        `Cantidad aprobada: ${aprobado}\n` +
-        `Cantidad entregada: ${entregado}\n` +
-        `Cantidad pendiente: ${pendiente}\n\n` +
-        "¿Cuánto vas a entregar ahora?"
-      );
-
-      if (respuestaCantidad === null) return;
-
-      const cantidad = Number(respuestaCantidad);
-
-      if (
-        respuestaCantidad.trim() === "" ||
-        !Number.isInteger(cantidad) ||
-        cantidad < 0 ||
-        cantidad > pendiente
-      ) {
-        alert(
-          `Ingresá una cantidad entera entre 0 y ${pendiente}.`
-        );
-        return;
-      }
-
-      if (cantidad > 0) {
-        cantidades.push({
-          id_detalle: Number(detalle.id_detalle),
-          cantidad_entregada: cantidad,
-        });
-      }
-    }
-
-    if (cantidades.length === 0) {
-      alert("No ingresaste ninguna cantidad para entregar.");
-      return;
-    }
-
-    const confirmar = window.confirm(
-      "¿Confirmás la entrega de los materiales seleccionados?"
-    );
-
-    if (!confirmar) return;
-
-    const respuestaEntrega = await fetch(
-      `/materiales/solicitudes/${idSolicitud}/entregar`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          detalles: cantidades,
-        }),
-      }
-    );
-
-    const resultado = await leerRespuesta(respuestaEntrega);
-
-    if (!respuestaEntrega.ok) {
-      throw new Error(
-        resultado.mensaje || "No se pudo registrar la entrega."
-      );
-    }
-
-    mostrarMensajeMateriales(
-      resultado.mensaje || "Entrega registrada correctamente."
-    );
-
-    await Promise.all([
-      cargarSolicitudesObra(),
-      cargarHistorialEntregas(),
-      cargarMaterialesDisponibles(),
-    ]);
-
   } catch (error) {
     mostrarMensajeMateriales(error.message);
   }
@@ -2127,16 +1865,14 @@ async function cargarHistorialEntregas() {
       throw new Error("No se pudo cargar el historial.");
     }
 
-    movimientosObra = datos.filter(movimiento => {
+    movimientosObra = datos.filter((movimiento) => {
       return (
-        Number(movimiento.id_obra) ===
-          Number(obraMaterialesActual.id_obra) &&
+        Number(movimiento.id_obra) === Number(obraMaterialesActual.id_obra) &&
         normalizarTexto(movimiento.tipo_movimiento) === "salida"
       );
     });
 
     mostrarHistorialEntregas();
-
   } catch (error) {
     tablaHistorialEntregas.innerHTML =
       '<tr><td colspan="4">Error al cargar el historial.</td></tr>';
@@ -2156,7 +1892,7 @@ function mostrarHistorialEntregas() {
     const fila = document.createElement("tr");
 
     const celda = crearCelda(
-      "Todavía no hay materiales entregados a esta obra."
+      "Todavía no hay materiales entregados a esta obra.",
     );
 
     celda.colSpan = 4;
@@ -2167,24 +1903,16 @@ function mostrarHistorialEntregas() {
     return;
   }
 
-  movimientosObra.forEach(movimiento => {
+  movimientosObra.forEach((movimiento) => {
     const fila = document.createElement("tr");
 
-    fila.appendChild(
-      crearCelda(formatearFecha(movimiento.fecha_movimiento))
-    );
+    fila.appendChild(crearCelda(formatearFecha(movimiento.fecha_movimiento)));
 
-    fila.appendChild(
-      crearCelda(movimiento.nombre_material)
-    );
+    fila.appendChild(crearCelda(movimiento.nombre_material));
 
-    fila.appendChild(
-      crearCelda(movimiento.cantidad)
-    );
+    fila.appendChild(crearCelda(movimiento.cantidad));
 
-    fila.appendChild(
-      crearCelda(movimiento.usuario)
-    );
+    fila.appendChild(crearCelda(movimiento.usuario));
 
     tablaHistorialEntregas.appendChild(fila);
   });
@@ -2195,13 +1923,7 @@ function mostrarHistorialEntregas() {
 // ==================================================
 
 async function inicializarObras() {
-  try {
-    await cargarClientes();
-    await cargarObras();
-
-  } catch (error) {
-    mensaje.textContent = error.message;
-  }
+  await cargarObras();
 }
 
 inicializarObras();

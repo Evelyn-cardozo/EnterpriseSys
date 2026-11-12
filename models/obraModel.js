@@ -1,4 +1,3 @@
-
 const pool = require("../Database/conexion");
 
 // ===============================
@@ -33,7 +32,7 @@ const buscarObraPorId = async (id) => {
      FROM obras
      WHERE id_obra = $1
      LIMIT 1`,
-    [id]
+    [id],
   );
 
   return resultado.rows[0];
@@ -46,7 +45,7 @@ const registrarObra = async (obra) => {
     nombre_obra,
     presupuesto_planificado,
     fecha_inicio,
-    fecha_fin_prevista
+    fecha_fin_prevista,
   } = obra;
 
   const resultado = await pool.query(
@@ -66,8 +65,8 @@ const registrarObra = async (obra) => {
       presupuesto_planificado,
       fecha_inicio,
       fecha_fin_prevista,
-      "Planificada"
-    ]
+      "Planificada",
+    ],
   );
 
   return resultado.rows[0];
@@ -80,7 +79,7 @@ const modificarObra = async (id, obra) => {
     nombre_obra,
     presupuesto_planificado,
     fecha_inicio,
-    fecha_fin_prevista
+    fecha_fin_prevista,
   } = obra;
 
   const resultado = await pool.query(
@@ -99,8 +98,8 @@ const modificarObra = async (id, obra) => {
       presupuesto_planificado,
       fecha_inicio,
       fecha_fin_prevista,
-      id
-    ]
+      id,
+    ],
   );
 
   if (resultado.rows.length === 0) {
@@ -108,7 +107,7 @@ const modificarObra = async (id, obra) => {
       `SELECT estado
        FROM obras
        WHERE id_obra = $1`,
-      [id]
+      [id],
     );
 
     if (obraExistente.rows.length === 0) {
@@ -116,7 +115,7 @@ const modificarObra = async (id, obra) => {
     }
 
     const error = new Error(
-      "No se puede modificar una obra finalizada o cancelada."
+      "No se puede modificar una obra finalizada o cancelada.",
     );
 
     error.codigo = "OBRA_NO_MODIFICABLE";
@@ -133,12 +132,11 @@ const cambiarEstadoObra = async (id, estado) => {
      SET estado = $1
      WHERE id_obra = $2
      RETURNING *`,
-    [estado, id]
+    [estado, id],
   );
 
   return resultado.rows[0];
 };
-
 
 // ===============================
 // TRABAJADORES
@@ -164,7 +162,7 @@ const listarTrabajadoresPorObra = async (id_obra) => {
      WHERE op.id_obra = $1
        AND op.estado = 'Activo'
      ORDER BY p.nombre_trabajador ASC`,
-    [id_obra]
+    [id_obra],
   );
 
   return resultado.rows;
@@ -195,13 +193,7 @@ const listarTodosLosTrabajadores = async () => {
 
 // Registrar trabajador sin asignarlo a una obra
 const registrarTrabajador = async (trabajador) => {
-  const {
-    nombre_trabajador,
-    cargo,
-    telefono,
-    gmail,
-    direccion
-  } = trabajador;
+  const { nombre_trabajador, cargo, telefono, gmail, direccion } = trabajador;
 
   const resultado = await pool.query(
     `INSERT INTO personales (
@@ -213,13 +205,7 @@ const registrarTrabajador = async (trabajador) => {
     )
     VALUES ($1, $2, $3, $4, $5)
     RETURNING *`,
-    [
-      nombre_trabajador,
-      cargo,
-      telefono,
-      gmail || null,
-      direccion || null
-    ]
+    [nombre_trabajador, cargo, telefono, gmail || null, direccion || null],
   );
 
   return resultado.rows[0];
@@ -232,7 +218,7 @@ const buscarTrabajadorPorId = async (id) => {
      FROM personales
      WHERE id_personal = $1
      LIMIT 1`,
-    [id]
+    [id],
   );
 
   return resultado.rows[0];
@@ -240,13 +226,7 @@ const buscarTrabajadorPorId = async (id) => {
 
 // Modificar datos personales
 const modificarTrabajador = async (id, trabajador) => {
-  const {
-    nombre_trabajador,
-    cargo,
-    telefono,
-    gmail,
-    direccion
-  } = trabajador;
+  const { nombre_trabajador, cargo, telefono, gmail, direccion } = trabajador;
 
   const resultado = await pool.query(
     `UPDATE personales
@@ -257,19 +237,11 @@ const modificarTrabajador = async (id, trabajador) => {
          direccion = $5
      WHERE id_personal = $6
      RETURNING *`,
-    [
-      nombre_trabajador,
-      cargo,
-      telefono,
-      gmail || null,
-      direccion || null,
-      id
-    ]
+    [nombre_trabajador, cargo, telefono, gmail || null, direccion || null, id],
   );
 
   return resultado.rows[0];
 };
-
 
 // ===============================
 // ASIGNACIONES DE TRABAJADORES
@@ -277,13 +249,12 @@ const modificarTrabajador = async (id, trabajador) => {
 
 // Asignar un trabajador existente a una obra
 const asignarTrabajadorAObra = async (id_obra, id_personal) => {
-
   // Comprobar que la obra exista y permita asignaciones
   const obra = await pool.query(
     `SELECT estado
      FROM obras
      WHERE id_obra = $1`,
-    [id_obra]
+    [id_obra],
   );
 
   if (obra.rows.length === 0) {
@@ -292,11 +263,11 @@ const asignarTrabajadorAObra = async (id_obra, id_personal) => {
 
   if (
     ["finalizada", "cancelada"].includes(
-      obra.rows[0].estado.trim().toLowerCase()
+      obra.rows[0].estado.trim().toLowerCase(),
     )
   ) {
     throw new Error(
-      "No se pueden asignar trabajadores a una obra finalizada o cancelada."
+      "No se pueden asignar trabajadores a una obra finalizada o cancelada.",
     );
   }
 
@@ -309,30 +280,24 @@ const asignarTrabajadorAObra = async (id_obra, id_personal) => {
       )
       VALUES ($1, $2, 'Activo')
       RETURNING *`,
-      [id_obra, id_personal]
+      [id_obra, id_personal],
     );
 
     return resultado.rows[0];
-
   } catch (error) {
     // El trabajador ya está asignado a esa obra
     if (error.code === "23505") {
-      throw new Error(
-        "Este trabajador ya está asignado a esta obra."
-      );
+      throw new Error("Este trabajador ya está asignado a esta obra.");
     }
 
     // El trabajador no existe
     if (error.code === "23503") {
-      throw new Error(
-        "El trabajador o la obra indicada no existen."
-      );
+      throw new Error("El trabajador o la obra indicada no existen.");
     }
 
     throw error;
   }
 };
-
 
 // ===============================
 // ELIMINAR TRABAJADOR
@@ -349,12 +314,11 @@ const eliminarTrabajador = async (id) => {
          WHERE op.id_personal = p.id_personal
        )
      RETURNING *`,
-    [id]
+    [id],
   );
 
   return resultado.rows[0];
 };
-
 
 // ===============================
 // EXPORTAR FUNCIONES
@@ -374,5 +338,5 @@ module.exports = {
   modificarTrabajador,
   eliminarTrabajador,
 
-  asignarTrabajadorAObra
+  asignarTrabajadorAObra,
 };

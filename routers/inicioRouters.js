@@ -1,4 +1,3 @@
-
 const express = require("express");
 const router = express.Router();
 
@@ -6,7 +5,7 @@ const inicioController = require("../controllers/inicioController");
 
 const {
   verificarSesion,
-  verificarRol
+  verificarRol,
 } = require("../middleware/authMiddleware");
 
 // Proteger las consultas del panel

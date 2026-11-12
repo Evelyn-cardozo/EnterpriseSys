@@ -1,17 +1,15 @@
-
 // ========================================
 // ENTERPRISESYS - GESTIÓN DE INVENTARIO
 // ========================================
 
-document.addEventListener("DOMContentLoaded", () => {
-
+document.addEventListener("DOMContentLoaded", async () => {
   const API = "/materiales";
 
   // ========================================
   // ELEMENTOS DEL HTML
   // ========================================
 
-  const $ = id => document.getElementById(id);
+  const $ = (id) => document.getElementById(id);
 
   const tablaMateriales = $("tablaMateriales");
   const totalMateriales = $("totalMateriales");
@@ -40,11 +38,86 @@ document.addEventListener("DOMContentLoaded", () => {
   const formMaterial = $("formMaterial");
   const formEntrada = $("formEntrada");
 
+  // NUEVO: selector de obras para las entradas
+  const obraEntrada = $("obraEntrada");
+
   let materiales = [];
   let solicitudes = [];
   let movimientos = [];
 
   let materialEditando = null;
+
+  // ========================================
+  // SESIÓN Y PERMISOS
+  // ========================================
+
+  let rolUsuario = null;
+
+  const puedeGestionarMateriales = () => [1, 3].includes(rolUsuario);
+
+  const puedeGestionarSolicitudes = () => [1, 3].includes(rolUsuario);
+
+  const puedeVerMovimientos = () => [1, 3].includes(rolUsuario);
+
+  async function cargarSesion() {
+    try {
+      const resultado = await solicitar("/usuarios/sesion");
+
+      rolUsuario = Number(resultado.usuario?.id_rol);
+
+      if (![1, 2, 3].includes(rolUsuario)) {
+        throw new Error("No se pudo identificar el rol del usuario.");
+      }
+
+      aplicarPermisos();
+
+      return true;
+    } catch (error) {
+      console.error("Error al consultar la sesión:", error);
+
+      mostrarMensaje(
+        mensajeInventario,
+        "No se pudo verificar la sesión del usuario. Volvé a iniciar sesión.",
+        "mensaje-error",
+      );
+
+      return false;
+    }
+  }
+
+  function aplicarPermisos() {
+    // Nuevo material
+    const btnNuevoMaterial = $("btnNuevoMaterial");
+
+    if (btnNuevoMaterial) {
+      btnNuevoMaterial.style.display = puedeGestionarMateriales() ? "" : "none";
+    }
+
+    // Movimientos: solamente gerente e inventario
+    const seccionMovimientos = $("seccionMovimientos");
+
+    if (seccionMovimientos) {
+      seccionMovimientos.style.display = puedeVerMovimientos() ? "" : "none";
+    }
+
+    // Botón de registrar entrada
+    const btnRegistrarEntrada = $("btnRegistrarEntrada");
+
+    if (btnRegistrarEntrada) {
+      btnRegistrarEntrada.style.display = puedeVerMovimientos() ? "" : "none";
+    }
+
+    // Ocultar la columna de acciones de materiales
+    const encabezadoAcciones = tablaMateriales
+      ?.closest("table")
+      ?.querySelector("thead th:last-child");
+
+    if (encabezadoAcciones) {
+      encabezadoAcciones.style.display = puedeGestionarMateriales()
+        ? ""
+        : "none";
+    }
+  }
 
   // ========================================
   // ESTILOS COMPLEMENTARIOS
@@ -243,13 +316,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   function escaparHTML(valor) {
-    return String(valor ?? "").replace(/[&<>"']/g, caracter => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[caracter]);
+    return String(valor ?? "").replace(
+      /[&<>"']/g,
+      (caracter) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[caracter],
+    );
   }
 
   function mostrarMensaje(elemento, texto, tipo = "") {
@@ -291,8 +368,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!respuesta.ok) {
       const error = new Error(
         resultado.mensaje ||
-        resultado.error ||
-        `Error del servidor (${respuesta.status})`
+          resultado.error ||
+          `Error del servidor (${respuesta.status})`,
       );
 
       error.status = respuesta.status;
@@ -314,9 +391,10 @@ document.addEventListener("DOMContentLoaded", () => {
       "materiales",
       "solicitudes",
       "movimientos",
+      "obras",
       "detalles",
       "data",
-      "resultado"
+      "resultado",
     ]) {
       if (Array.isArray(resultado[propiedad])) {
         return resultado[propiedad];
@@ -335,14 +413,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (solicitud.estado === "Aprobada") {
       const detalles = solicitud.detalles || [];
 
-      const tieneEntrega = detalles.some(item =>
-        Number(item.cantidad_entregada) > 0
+      const tieneEntrega = detalles.some(
+        (item) => Number(item.cantidad_entregada) > 0,
       );
 
       if (tieneEntrega) {
-        const completo = detalles.every(item =>
-          Number(item.cantidad_entregada) >=
-          Number(item.cantidad_aprobada)
+        const completo = detalles.every(
+          (item) =>
+            Number(item.cantidad_entregada) >= Number(item.cantidad_aprobada),
         );
 
         return completo ? "Entregada" : "Parcial";
@@ -353,13 +431,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function claseEstado(estado) {
-    return {
-      Pendiente: "estado-pendiente",
-      Aprobada: "estado-aprobada",
-      Parcial: "estado-parcial",
-      Entregada: "estado-entregada",
-      Rechazada: "estado-rechazada"
-    }[estado] || "";
+    return (
+      {
+        Pendiente: "estado-pendiente",
+        Aprobada: "estado-aprobada",
+        Parcial: "estado-parcial",
+        Entregada: "estado-entregada",
+        Rechazada: "estado-rechazada",
+      }[estado] || ""
+    );
   }
 
   function abrirModal(modal) {
@@ -397,11 +477,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   function abrirFormularioMaterial(material = null) {
+    if (!puedeGestionarMateriales()) return;
+
     if (!formMaterial) return;
 
-    materialEditando = material
-      ? material.id_material
-      : null;
+    materialEditando = material ? material.id_material : null;
 
     formMaterial.reset();
 
@@ -433,20 +513,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   $("btnNuevoMaterial")?.addEventListener("click", () => {
+    if (!puedeGestionarMateriales()) return;
+
     abrirFormularioMaterial();
   });
 
-  $("cerrarModalMaterial")?.addEventListener(
-    "click",
-    cerrarFormularioMaterial
-  );
+  $("cerrarModalMaterial")?.addEventListener("click", cerrarFormularioMaterial);
 
-  $("cancelarMaterial")?.addEventListener(
-    "click",
-    cerrarFormularioMaterial
-  );
+  $("cancelarMaterial")?.addEventListener("click", cerrarFormularioMaterial);
 
-  modalMaterial?.addEventListener("click", evento => {
+  modalMaterial?.addEventListener("click", (evento) => {
     if (evento.target === modalMaterial) {
       cerrarFormularioMaterial();
     }
@@ -459,8 +535,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function cargarMateriales() {
     if (!tablaMateriales) return;
 
-    tablaMateriales.innerHTML =
-      `<tr><td colspan="7">Cargando materiales...</td></tr>`;
+    tablaMateriales.innerHTML = `<tr><td colspan="7">Cargando materiales...</td></tr>`;
 
     try {
       const resultado = await solicitar(API);
@@ -472,18 +547,12 @@ document.addEventListener("DOMContentLoaded", () => {
       actualizarSelectMateriales();
 
       mostrarMensaje(mensajeInventario, "");
-
     } catch (error) {
       console.error("Error al cargar materiales:", error);
 
-      tablaMateriales.innerHTML =
-        `<tr><td colspan="7">No se pudieron cargar los materiales.</td></tr>`;
+      tablaMateriales.innerHTML = `<tr><td colspan="7">No se pudieron cargar los materiales.</td></tr>`;
 
-      mostrarMensaje(
-        mensajeInventario,
-        error.message,
-        "mensaje-error"
-      );
+      mostrarMensaje(mensajeInventario, error.message, "mensaje-error");
     }
   }
 
@@ -493,8 +562,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (stockBajo) {
-      stockBajo.textContent = materiales.filter(material =>
-        Number(material.stock_actual) <= Number(material.stock_minimo)
+      stockBajo.textContent = materiales.filter(
+        (material) =>
+          Number(material.stock_actual) <= Number(material.stock_minimo),
       ).length;
     }
   }
@@ -506,13 +576,15 @@ document.addEventListener("DOMContentLoaded", () => {
       .trim()
       .toLocaleLowerCase("es");
 
-    const filtrados = materiales.filter(material => {
+    const filtrados = materiales.filter((material) => {
       const texto = [
         material.id_material,
         material.nombre,
         material.descripcion,
-        material.ubicacion_fisica
-      ].join(" ").toLocaleLowerCase("es");
+        material.ubicacion_fisica,
+      ]
+        .join(" ")
+        .toLocaleLowerCase("es");
 
       return texto.includes(busqueda);
     });
@@ -521,31 +593,46 @@ document.addEventListener("DOMContentLoaded", () => {
       tablaMateriales.innerHTML = `
         <tr>
           <td colspan="7">
-            ${materiales.length
-              ? "No se encontraron materiales."
-              : "Todavía no hay materiales registrados."}
+            ${
+              materiales.length
+                ? "No se encontraron materiales."
+                : "Todavía no hay materiales registrados."
+            }
           </td>
         </tr>
       `;
       return;
     }
 
-    tablaMateriales.innerHTML = filtrados.map(material => {
-      const stock = Number(material.stock_actual || 0);
-      const minimo = Number(material.stock_minimo || 0);
+    tablaMateriales.innerHTML = filtrados
+      .map((material) => {
+        const stock = Number(material.stock_actual || 0);
+        const minimo = Number(material.stock_minimo || 0);
 
-      let clase = "stock-normal";
-      let estado = "Normal";
+        let clase = "stock-normal";
+        let estado = "Normal";
 
-      if (stock <= 0) {
-        clase = "stock-agotado";
-        estado = "Agotado";
-      } else if (stock <= minimo) {
-        clase = "stock-bajo";
-        estado = "Stock bajo";
-      }
+        if (stock <= 0) {
+          clase = "stock-agotado";
+          estado = "Agotado";
+        } else if (stock <= minimo) {
+          clase = "stock-bajo";
+          estado = "Stock bajo";
+        }
 
-      return `
+        const acciones = puedeGestionarMateriales()
+          ? `
+          <button
+            type="button"
+            class="btn-modificar"
+            data-accion="editar-material"
+            data-id="${escaparHTML(material.id_material)}">
+            Modificar
+          </button>
+        `
+          : "";
+
+        return `
         <tr>
           <td>${escaparHTML(material.nombre)}</td>
 
@@ -563,31 +650,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
           <td>${escaparHTML(material.ubicacion_fisica || "Sin ubicación")}</td>
 
-          <td>
-            <button
-              type="button"
-              class="btn-modificar"
-              data-accion="editar-material"
-              data-id="${escaparHTML(material.id_material)}">
-              Modificar
-            </button>
+          <td style="display: ${puedeGestionarMateriales() ? "" : "none"}">
+            ${acciones}
           </td>
         </tr>
       `;
-    }).join("");
+      })
+      .join("");
   }
 
   buscarMaterial?.addEventListener("input", mostrarMateriales);
 
-  tablaMateriales?.addEventListener("click", evento => {
-    const boton = evento.target.closest(
-      '[data-accion="editar-material"]'
-    );
+  tablaMateriales?.addEventListener("click", (evento) => {
+    if (!puedeGestionarMateriales()) return;
+
+    const boton = evento.target.closest('[data-accion="editar-material"]');
 
     if (!boton) return;
 
-    const material = materiales.find(item =>
-      String(item.id_material) === String(boton.dataset.id)
+    const material = materiales.find(
+      (item) => String(item.id_material) === String(boton.dataset.id),
     );
 
     if (material) abrirFormularioMaterial(material);
@@ -597,15 +679,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // MATERIALES: GUARDAR
   // ========================================
 
-  formMaterial?.addEventListener("submit", async evento => {
+  formMaterial?.addEventListener("submit", async (evento) => {
     evento.preventDefault();
+
+    if (!puedeGestionarMateriales()) return;
 
     const datos = {
       nombre: $("nombreMaterial").value.trim(),
       descripcion: $("descripcionMaterial").value.trim(),
       precio_actual: Number($("precioMaterial").value),
       stock_minimo: Number($("stockMinimoMaterial").value),
-      ubicacion_fisica: $("ubicacionMaterial").value.trim()
+      ubicacion_fisica: $("ubicacionMaterial").value.trim(),
     };
 
     const editando = materialEditando !== null;
@@ -618,7 +702,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mostrarMensaje(
         mensajeInventario,
         "El nombre es obligatorio.",
-        "mensaje-error"
+        "mensaje-error",
       );
       return;
     }
@@ -627,7 +711,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mostrarMensaje(
         mensajeInventario,
         "El precio no es válido.",
-        "mensaje-error"
+        "mensaje-error",
       );
       return;
     }
@@ -636,7 +720,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mostrarMensaje(
         mensajeInventario,
         "El stock mínimo no es válido.",
-        "mensaje-error"
+        "mensaje-error",
       );
       return;
     }
@@ -648,7 +732,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mostrarMensaje(
         mensajeInventario,
         "El stock inicial no es válido.",
-        "mensaje-error"
+        "mensaje-error",
       );
       return;
     }
@@ -665,9 +749,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const resultado = await solicitar(url, {
         method: editando ? "PUT" : "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(datos)
+        body: JSON.stringify(datos),
       });
 
       cerrarFormularioMaterial();
@@ -675,17 +759,12 @@ document.addEventListener("DOMContentLoaded", () => {
       mostrarMensaje(
         mensajeInventario,
         resultado.mensaje || "Material guardado correctamente.",
-        "mensaje-exito"
+        "mensaje-exito",
       );
 
       await cargarMateriales();
-
     } catch (error) {
-      mostrarMensaje(
-        mensajeInventario,
-        error.message,
-        "mensaje-error"
-      );
+      mostrarMensaje(mensajeInventario, error.message, "mensaje-error");
     } finally {
       if (boton) boton.disabled = false;
     }
@@ -698,42 +777,37 @@ document.addEventListener("DOMContentLoaded", () => {
   async function cargarSolicitudes() {
     if (!tablaSolicitudes) return;
 
-    tablaSolicitudes.innerHTML =
-      `<tr><td colspan="7">Cargando solicitudes...</td></tr>`;
+    tablaSolicitudes.innerHTML = `<tr><td colspan="7">Cargando solicitudes...</td></tr>`;
 
     try {
       const resultado = await solicitar(`${API}/solicitudes`);
 
       solicitudes = obtenerDatos(resultado);
 
-      await Promise.all(solicitudes.map(async solicitud => {
-        if (solicitud.estado !== "Aprobada") return;
+      await Promise.all(
+        solicitudes.map(async (solicitud) => {
+          if (solicitud.estado !== "Aprobada") return;
 
-        try {
-          solicitud.detalles = await obtenerDetalleSolicitud(
-            solicitud.id_solicitud
-          );
-        } catch (error) {
-          console.error("Error al obtener detalle:", error);
-        }
-      }));
+          try {
+            solicitud.detalles = await obtenerDetalleSolicitud(
+              solicitud.id_solicitud,
+            );
+          } catch (error) {
+            console.error("Error al obtener detalle:", error);
+          }
+        }),
+      );
 
       mostrarSolicitudes();
       mostrarHistorial();
 
       mostrarMensaje(mensajeSolicitudes, "");
-
     } catch (error) {
       console.error("Error al cargar solicitudes:", error);
 
-      tablaSolicitudes.innerHTML =
-        `<tr><td colspan="7">No se pudieron cargar las solicitudes.</td></tr>`;
+      tablaSolicitudes.innerHTML = `<tr><td colspan="7">No se pudieron cargar las solicitudes.</td></tr>`;
 
-      mostrarMensaje(
-        mensajeSolicitudes,
-        error.message,
-        "mensaje-error"
-      );
+      mostrarMensaje(mensajeSolicitudes, error.message, "mensaje-error");
     }
   }
 
@@ -750,38 +824,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const estadoFiltro = filtroEstadoSolicitud?.value || "";
 
-    const filtradas = solicitudes.filter(solicitud => {
+    const filtradas = solicitudes.filter((solicitud) => {
       const estado = obtenerEstadoVisual(solicitud);
 
       const texto = [
         solicitud.id_solicitud,
         solicitud.nombre_obra,
         solicitud.usuario_solicitante,
-        estado
-      ].join(" ").toLocaleLowerCase("es");
+        estado,
+      ]
+        .join(" ")
+        .toLocaleLowerCase("es");
 
-      return texto.includes(busqueda) &&
-        (!estadoFiltro || estado === estadoFiltro);
+      return (
+        texto.includes(busqueda) && (!estadoFiltro || estado === estadoFiltro)
+      );
     });
 
     if (!filtradas.length) {
       tablaSolicitudes.innerHTML = `
         <tr>
           <td colspan="7">
-            ${solicitudes.length
-              ? "No se encontraron solicitudes."
-              : "Todavía no hay solicitudes registradas."}
+            ${
+              solicitudes.length
+                ? "No se encontraron solicitudes."
+                : "Todavía no hay solicitudes registradas."
+            }
           </td>
         </tr>
       `;
       return;
     }
 
-    tablaSolicitudes.innerHTML = filtradas.map(solicitud => {
-      const estado = obtenerEstadoVisual(solicitud);
-      const id = escaparHTML(solicitud.id_solicitud);
+    tablaSolicitudes.innerHTML = filtradas
+      .map((solicitud) => {
+        const estado = obtenerEstadoVisual(solicitud);
+        const id = escaparHTML(solicitud.id_solicitud);
 
-      let acciones = `
+        // Todos pueden consultar el detalle.
+        let acciones = `
         <button
           type="button"
           class="btn-ver"
@@ -791,39 +872,42 @@ document.addEventListener("DOMContentLoaded", () => {
         </button>
       `;
 
-      if (solicitud.estado === "Pendiente") {
-        acciones += `
-          <button
-            type="button"
-            class="btn-aprobar"
-            data-accion="aprobar"
-            data-id="${id}">
-            Aprobar
-          </button>
+        // Solamente gerente e inventario pueden gestionar.
+        if (puedeGestionarSolicitudes()) {
+          if (solicitud.estado === "Pendiente") {
+            acciones += `
+            <button
+              type="button"
+              class="btn-aprobar"
+              data-accion="aprobar"
+              data-id="${id}">
+              Aprobar
+            </button>
 
-          <button
-            type="button"
-            class="btn-rechazar"
-            data-accion="rechazar"
-            data-id="${id}">
-            Rechazar
-          </button>
-        `;
-      }
+            <button
+              type="button"
+              class="btn-rechazar"
+              data-accion="rechazar"
+              data-id="${id}">
+              Rechazar
+            </button>
+          `;
+          }
 
-      if (solicitud.estado === "Aprobada") {
-        acciones += `
-          <button
-            type="button"
-            class="btn-entregar"
-            data-accion="entregar"
-            data-id="${id}">
-            Entregar
-          </button>
-        `;
-      }
+          if (solicitud.estado === "Aprobada") {
+            acciones += `
+            <button
+              type="button"
+              class="btn-entregar"
+              data-accion="entregar"
+              data-id="${id}">
+              Entregar
+            </button>
+          `;
+          }
+        }
 
-      return `
+        return `
         <tr>
           <td>${id}</td>
           <td>${escaparHTML(solicitud.nombre_obra)}</td>
@@ -842,20 +926,15 @@ document.addEventListener("DOMContentLoaded", () => {
           </td>
         </tr>
       `;
-    }).join("");
+      })
+      .join("");
   }
 
   buscarSolicitud?.addEventListener("input", mostrarSolicitudes);
 
-  filtroEstadoSolicitud?.addEventListener(
-    "change",
-    mostrarSolicitudes
-  );
+  filtroEstadoSolicitud?.addEventListener("change", mostrarSolicitudes);
 
-  $("btnActualizarSolicitudes")?.addEventListener(
-    "click",
-    cargarSolicitudes
-  );
+  $("btnActualizarSolicitudes")?.addEventListener("click", cargarSolicitudes);
 
   // ========================================
   // DETALLE DE SOLICITUD
@@ -863,7 +942,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function obtenerDetalleSolicitud(id) {
     const resultado = await solicitar(
-      `${API}/solicitudes/${encodeURIComponent(id)}`
+      `${API}/solicitudes/${encodeURIComponent(id)}`,
     );
 
     return obtenerDatos(resultado);
@@ -876,11 +955,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const primero = detalles[0];
 
-    const filas = detalles.map(item => {
-      let cantidad = "";
+    const filas = detalles
+      .map((item) => {
+        let cantidad = "";
 
-      if (modo === "aprobar") {
-        cantidad = `
+        if (modo === "aprobar") {
+          cantidad = `
           <input
             type="number"
             class="cantidad-aprobada"
@@ -889,14 +969,13 @@ document.addEventListener("DOMContentLoaded", () => {
             max="${escaparHTML(item.cantidad_solicitada)}"
             value="${escaparHTML(item.cantidad_solicitada)}">
         `;
-      } else if (modo === "entregar") {
-        const restante = Math.max(
-          0,
-          Number(item.cantidad_aprobada) -
-          Number(item.cantidad_entregada)
-        );
+        } else if (modo === "entregar") {
+          const restante = Math.max(
+            0,
+            Number(item.cantidad_aprobada) - Number(item.cantidad_entregada),
+          );
 
-        cantidad = `
+          cantidad = `
           <input
             type="number"
             class="cantidad-entregada"
@@ -905,11 +984,11 @@ document.addEventListener("DOMContentLoaded", () => {
             max="${restante}"
             value="${restante}">
         `;
-      } else {
-        cantidad = escaparHTML(item.cantidad_solicitada);
-      }
+        } else {
+          cantidad = escaparHTML(item.cantidad_solicitada);
+        }
 
-      return `
+        return `
         <tr>
           <td>${escaparHTML(item.nombre_material)}</td>
           <td>${escaparHTML(item.cantidad_solicitada)}</td>
@@ -918,7 +997,8 @@ document.addEventListener("DOMContentLoaded", () => {
           ${modo !== "ver" ? `<td>${cantidad}</td>` : ""}
         </tr>
       `;
-    }).join("");
+      })
+      .join("");
 
     $("contenidoDetalleSolicitud").innerHTML = `
       <div class="informacion-solicitud">
@@ -935,16 +1015,17 @@ document.addEventListener("DOMContentLoaded", () => {
             <th>Solicitado</th>
             <th>Aprobado</th>
             <th>Entregado</th>
-            ${modo !== "ver"
-              ? `<th>${modo === "aprobar" ? "Autorizar" : "Entregar ahora"}</th>`
-              : ""}
+            ${
+              modo !== "ver"
+                ? `<th>${modo === "aprobar" ? "Autorizar" : "Entregar ahora"}</th>`
+                : ""
+            }
           </tr>
         </thead>
         <tbody>${filas}</tbody>
       </table>
     `;
 
-    // El título es opcional para evitar errores si no existe en el HTML.
     const titulo = $("tituloModalDetalle");
 
     if (titulo) {
@@ -964,12 +1045,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  $("cerrarModalDetalle")?.addEventListener(
-    "click",
-    cerrarDetalle
-  );
+  $("cerrarModalDetalle")?.addEventListener("click", cerrarDetalle);
 
-  modalDetalle?.addEventListener("click", evento => {
+  modalDetalle?.addEventListener("click", (evento) => {
     if (evento.target === modalDetalle) {
       cerrarDetalle();
     }
@@ -984,13 +1062,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const detalles = await obtenerDetalleSolicitud(id);
 
       mostrarDetalleEnModal(id, detalles, "ver");
-
     } catch (error) {
-      mostrarMensaje(
-        mensajeSolicitudes,
-        error.message,
-        "mensaje-error"
-      );
+      mostrarMensaje(mensajeSolicitudes, error.message, "mensaje-error");
     }
   }
 
@@ -999,6 +1072,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   async function aprobarSolicitud(id) {
+    if (!puedeGestionarSolicitudes()) return;
+
     try {
       const detalles = await obtenerDetalleSolicitud(id);
 
@@ -1013,8 +1088,10 @@ document.addEventListener("DOMContentLoaded", () => {
       $("contenidoDetalleSolicitud").appendChild(boton);
 
       boton.addEventListener("click", async () => {
+        if (!puedeGestionarSolicitudes()) return;
+
         const entradas = [
-          ...modalDetalle.querySelectorAll(".cantidad-aprobada")
+          ...modalDetalle.querySelectorAll(".cantidad-aprobada"),
         ];
 
         const detalleAprobado = [];
@@ -1031,25 +1108,22 @@ document.addEventListener("DOMContentLoaded", () => {
             mostrarMensaje(
               mensajeSolicitudes,
               "Verificá las cantidades aprobadas.",
-              "mensaje-error"
+              "mensaje-error",
             );
             return;
           }
 
           detalleAprobado.push({
             id_detalle: Number(entrada.dataset.id),
-            cantidad_aprobada: cantidad
+            cantidad_aprobada: cantidad,
           });
         }
 
-        // No permitir aprobar todos los materiales con cantidad cero.
-        if (!detalleAprobado.some(item =>
-          item.cantidad_aprobada > 0
-        )) {
+        if (!detalleAprobado.some((item) => item.cantidad_aprobada > 0)) {
           mostrarMensaje(
             mensajeSolicitudes,
             "Debés aprobar al menos un material con cantidad mayor a cero.",
-            "mensaje-error"
+            "mensaje-error",
           );
           return;
         }
@@ -1062,12 +1136,12 @@ document.addEventListener("DOMContentLoaded", () => {
             {
               method: "PATCH",
               headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                detalles: detalleAprobado
-              })
-            }
+                detalles: detalleAprobado,
+              }),
+            },
           );
 
           cerrarDetalle();
@@ -1075,29 +1149,19 @@ document.addEventListener("DOMContentLoaded", () => {
           mostrarMensaje(
             mensajeSolicitudes,
             resultado.mensaje || "Solicitud aprobada correctamente.",
-            "mensaje-exito"
+            "mensaje-exito",
           );
 
           await cargarSolicitudes();
           await cargarMateriales();
-
         } catch (error) {
-          mostrarMensaje(
-            mensajeSolicitudes,
-            error.message,
-            "mensaje-error"
-          );
+          mostrarMensaje(mensajeSolicitudes, error.message, "mensaje-error");
 
           boton.disabled = false;
         }
       });
-
     } catch (error) {
-      mostrarMensaje(
-        mensajeSolicitudes,
-        error.message,
-        "mensaje-error"
-      );
+      mostrarMensaje(mensajeSolicitudes, error.message, "mensaje-error");
     }
   }
 
@@ -1106,6 +1170,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   async function rechazarSolicitud(id) {
+    if (!puedeGestionarSolicitudes()) return;
+
     if (!window.confirm(`¿Rechazar la solicitud N.º ${id}?`)) {
       return;
     }
@@ -1114,24 +1180,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const resultado = await solicitar(
         `${API}/solicitudes/${encodeURIComponent(id)}/rechazar`,
         {
-          method: "PATCH"
-        }
+          method: "PATCH",
+        },
       );
 
       mostrarMensaje(
         mensajeSolicitudes,
         resultado.mensaje || "Solicitud rechazada.",
-        "mensaje-exito"
+        "mensaje-exito",
       );
 
       await cargarSolicitudes();
-
     } catch (error) {
-      mostrarMensaje(
-        mensajeSolicitudes,
-        error.message,
-        "mensaje-error"
-      );
+      mostrarMensaje(mensajeSolicitudes, error.message, "mensaje-error");
     }
   }
 
@@ -1140,18 +1201,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   async function entregarSolicitud(id) {
+    if (!puedeGestionarSolicitudes()) return;
+
     try {
       const detalles = await obtenerDetalleSolicitud(id);
 
-      const pendientes = detalles.filter(item =>
-        Number(item.cantidad_aprobada) >
-        Number(item.cantidad_entregada)
+      const pendientes = detalles.filter(
+        (item) =>
+          Number(item.cantidad_aprobada) > Number(item.cantidad_entregada),
       );
 
       if (!pendientes.length) {
-        throw new Error(
-          "No hay cantidades pendientes de entrega."
-        );
+        throw new Error("No hay cantidades pendientes de entrega.");
       }
 
       mostrarDetalleEnModal(id, pendientes, "entregar");
@@ -1165,8 +1226,10 @@ document.addEventListener("DOMContentLoaded", () => {
       $("contenidoDetalleSolicitud").appendChild(boton);
 
       boton.addEventListener("click", async () => {
+        if (!puedeGestionarSolicitudes()) return;
+
         const entradas = [
-          ...modalDetalle.querySelectorAll(".cantidad-entregada")
+          ...modalDetalle.querySelectorAll(".cantidad-entregada"),
         ];
 
         const entregas = [];
@@ -1183,7 +1246,7 @@ document.addEventListener("DOMContentLoaded", () => {
             mostrarMensaje(
               mensajeSolicitudes,
               "Verificá las cantidades que se entregarán.",
-              "mensaje-error"
+              "mensaje-error",
             );
             return;
           }
@@ -1191,7 +1254,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (cantidad > 0) {
             entregas.push({
               id_detalle: Number(entrada.dataset.id),
-              cantidad_entregada: cantidad
+              cantidad_entregada: cantidad,
             });
           }
         }
@@ -1200,7 +1263,7 @@ document.addEventListener("DOMContentLoaded", () => {
           mostrarMensaje(
             mensajeSolicitudes,
             "Ingresá al menos una cantidad para entregar.",
-            "mensaje-error"
+            "mensaje-error",
           );
           return;
         }
@@ -1213,12 +1276,12 @@ document.addEventListener("DOMContentLoaded", () => {
             {
               method: "POST",
               headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                detalles: entregas
-              })
-            }
+                detalles: entregas,
+              }),
+            },
           );
 
           cerrarDetalle();
@@ -1226,30 +1289,20 @@ document.addEventListener("DOMContentLoaded", () => {
           mostrarMensaje(
             mensajeSolicitudes,
             resultado.mensaje || "Entrega registrada correctamente.",
-            "mensaje-exito"
+            "mensaje-exito",
           );
 
           await cargarSolicitudes();
           await cargarMateriales();
           await cargarMovimientos();
-
         } catch (error) {
-          mostrarMensaje(
-            mensajeSolicitudes,
-            error.message,
-            "mensaje-error"
-          );
+          mostrarMensaje(mensajeSolicitudes, error.message, "mensaje-error");
 
           boton.disabled = false;
         }
       });
-
     } catch (error) {
-      mostrarMensaje(
-        mensajeSolicitudes,
-        error.message,
-        "mensaje-error"
-      );
+      mostrarMensaje(mensajeSolicitudes, error.message, "mensaje-error");
     }
   }
 
@@ -1257,7 +1310,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // EVENTOS DE SOLICITUDES
   // ========================================
 
-  tablaSolicitudes?.addEventListener("click", evento => {
+  tablaSolicitudes?.addEventListener("click", (evento) => {
     const boton = evento.target.closest("[data-accion]");
 
     if (!boton) return;
@@ -1270,15 +1323,21 @@ document.addEventListener("DOMContentLoaded", () => {
         break;
 
       case "aprobar":
-        aprobarSolicitud(id);
+        if (puedeGestionarSolicitudes()) {
+          aprobarSolicitud(id);
+        }
         break;
 
       case "rechazar":
-        rechazarSolicitud(id);
+        if (puedeGestionarSolicitudes()) {
+          rechazarSolicitud(id);
+        }
         break;
 
       case "entregar":
-        entregarSolicitud(id);
+        if (puedeGestionarSolicitudes()) {
+          entregarSolicitud(id);
+        }
         break;
     }
   });
@@ -1294,21 +1353,23 @@ document.addEventListener("DOMContentLoaded", () => {
       .trim()
       .toLocaleLowerCase("es");
 
-    const procesadas = solicitudes.filter(solicitud => {
+    const procesadas = solicitudes.filter((solicitud) => {
       const estado = obtenerEstadoVisual(solicitud);
 
       return estado !== "Pendiente";
     });
 
-    const filtradas = procesadas.filter(solicitud => {
+    const filtradas = procesadas.filter((solicitud) => {
       const estado = obtenerEstadoVisual(solicitud);
 
       const texto = [
         solicitud.id_solicitud,
         solicitud.nombre_obra,
         solicitud.usuario_solicitante,
-        estado
-      ].join(" ").toLocaleLowerCase("es");
+        estado,
+      ]
+        .join(" ")
+        .toLocaleLowerCase("es");
 
       return texto.includes(busqueda);
     });
@@ -1317,19 +1378,22 @@ document.addEventListener("DOMContentLoaded", () => {
       tablaHistorial.innerHTML = `
         <tr>
           <td colspan="6">
-            ${procesadas.length
-              ? "No se encontraron solicitudes."
-              : "Todavía no hay solicitudes procesadas."}
+            ${
+              procesadas.length
+                ? "No se encontraron solicitudes."
+                : "Todavía no hay solicitudes procesadas."
+            }
           </td>
         </tr>
       `;
       return;
     }
 
-    tablaHistorial.innerHTML = filtradas.map(solicitud => {
-      const estado = obtenerEstadoVisual(solicitud);
+    tablaHistorial.innerHTML = filtradas
+      .map((solicitud) => {
+        const estado = obtenerEstadoVisual(solicitud);
 
-      return `
+        return `
         <tr>
           <td>${escaparHTML(solicitud.id_solicitud)}</td>
           <td>${escaparHTML(solicitud.nombre_obra)}</td>
@@ -1352,17 +1416,15 @@ document.addEventListener("DOMContentLoaded", () => {
           </td>
         </tr>
       `;
-    }).join("");
+      })
+      .join("");
   }
 
   buscarHistorial?.addEventListener("input", mostrarHistorial);
 
-  $("btnActualizarHistorial")?.addEventListener(
-    "click",
-    cargarSolicitudes
-  );
+  $("btnActualizarHistorial")?.addEventListener("click", cargarSolicitudes);
 
-  tablaHistorial?.addEventListener("click", evento => {
+  tablaHistorial?.addEventListener("click", (evento) => {
     const boton = evento.target.closest("[data-id]");
 
     if (!boton) return;
@@ -1375,10 +1437,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   async function cargarMovimientos() {
+    if (!puedeVerMovimientos()) {
+      ocultarSeccionMovimientos();
+      return;
+    }
+
     if (!tablaMovimientos) return;
 
-    tablaMovimientos.innerHTML =
-      `<tr><td colspan="7">Cargando movimientos...</td></tr>`;
+    tablaMovimientos.innerHTML = `<tr><td colspan="7">Cargando movimientos...</td></tr>`;
 
     try {
       const resultado = await solicitar(`${API}/movimientos`);
@@ -1388,7 +1454,6 @@ document.addEventListener("DOMContentLoaded", () => {
       mostrarMovimientos();
 
       mostrarMensaje(mensajeMovimientos, "");
-
     } catch (error) {
       console.error("Error al cargar movimientos:", error);
 
@@ -1403,11 +1468,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </tr>
       `;
 
-      mostrarMensaje(
-        mensajeMovimientos,
-        error.message,
-        "mensaje-error"
-      );
+      mostrarMensaje(mensajeMovimientos, error.message, "mensaje-error");
     }
   }
 
@@ -1416,6 +1477,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   function mostrarMovimientos() {
+    if (!puedeVerMovimientos()) return;
+
     if (!tablaMovimientos) return;
 
     const busqueda = (buscarMovimiento?.value || "")
@@ -1424,38 +1487,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const tipoFiltro = filtroTipoMovimiento?.value || "";
 
-    const filtrados = movimientos.filter(movimiento => {
+    const filtrados = movimientos.filter((movimiento) => {
       const texto = [
         movimiento.id_movimiento,
         movimiento.nombre_material,
         movimiento.usuario,
         movimiento.nombre_obra,
         movimiento.tipo_movimiento,
-        movimiento.motivo
-      ].join(" ").toLocaleLowerCase("es");
+        movimiento.motivo,
+      ]
+        .join(" ")
+        .toLocaleLowerCase("es");
 
-      return texto.includes(busqueda) &&
-        (!tipoFiltro ||
-          movimiento.tipo_movimiento === tipoFiltro);
+      return (
+        texto.includes(busqueda) &&
+        (!tipoFiltro || movimiento.tipo_movimiento === tipoFiltro)
+      );
     });
 
     if (!filtrados.length) {
       tablaMovimientos.innerHTML = `
         <tr>
           <td colspan="7">
-            ${movimientos.length
-              ? "No se encontraron movimientos."
-              : "Todavía no hay movimientos registrados."}
+            ${
+              movimientos.length
+                ? "No se encontraron movimientos."
+                : "Todavía no hay movimientos registrados."
+            }
           </td>
         </tr>
       `;
       return;
     }
 
-    tablaMovimientos.innerHTML = filtrados.map(movimiento => {
-      const entrada = movimiento.tipo_movimiento === "Entrada";
+    tablaMovimientos.innerHTML = filtrados
+      .map((movimiento) => {
+        const entrada = movimiento.tipo_movimiento === "Entrada";
 
-      return `
+        return `
         <tr>
           <td>${escaparHTML(movimiento.nombre_material)}</td>
 
@@ -1478,26 +1547,18 @@ document.addEventListener("DOMContentLoaded", () => {
           <td>${escaparHTML(movimiento.motivo || "Sin motivo")}</td>
         </tr>
       `;
-    }).join("");
+      })
+      .join("");
   }
 
-  buscarMovimiento?.addEventListener(
-    "input",
-    mostrarMovimientos
-  );
+  buscarMovimiento?.addEventListener("input", mostrarMovimientos);
 
-  filtroTipoMovimiento?.addEventListener(
-    "change",
-    mostrarMovimientos
-  );
+  filtroTipoMovimiento?.addEventListener("change", mostrarMovimientos);
 
-  $("btnActualizarMovimientos")?.addEventListener(
-    "click",
-    cargarMovimientos
-  );
+  $("btnActualizarMovimientos")?.addEventListener("click", cargarMovimientos);
 
   // ========================================
-  // ENTRADAS: ACTUALIZAR SELECT
+  // ENTRADAS: ACTUALIZAR SELECT DE MATERIALES
   // ========================================
 
   function actualizarSelectMateriales() {
@@ -1510,12 +1571,16 @@ document.addEventListener("DOMContentLoaded", () => {
     select.innerHTML = `
       <option value="">Seleccione un material</option>
 
-      ${materiales.map(material => `
+      ${materiales
+        .map(
+          (material) => `
         <option value="${escaparHTML(material.id_material)}">
           ${escaparHTML(material.nombre)}
           (Stock: ${escaparHTML(material.stock_actual)})
         </option>
-      `).join("")}
+      `,
+        )
+        .join("")}
     `;
 
     if (seleccionado) {
@@ -1524,15 +1589,68 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ========================================
+  // ENTRADAS: CARGAR OBRAS DISPONIBLES
+  // ========================================
+
+  async function cargarObrasDisponibles() {
+    if (!obraEntrada) {
+      console.error("No se encontró el selector obraEntrada.");
+      return false;
+    }
+
+    try {
+      const resultado = await solicitar(`${API}/obras-disponibles`);
+
+      const obras = obtenerDatos(resultado);
+
+      // Se conserva siempre la opción de inventario general.
+      obraEntrada.innerHTML = `
+        <option value="">
+          Inventario general (sin obra)
+        </option>
+      `;
+
+      obras.forEach((obra) => {
+        const opcion = document.createElement("option");
+
+        opcion.value = obra.id_obra;
+        opcion.textContent = obra.nombre_obra;
+
+        obraEntrada.appendChild(opcion);
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Error al cargar las obras:", error);
+
+      obraEntrada.innerHTML = `
+        <option value="">
+          Inventario general (sin obra)
+        </option>
+      `;
+
+      mostrarMensaje(
+        mensajeMovimientos,
+        "No se pudieron cargar las obras. No se puede registrar la entrada.",
+        "mensaje-error",
+      );
+
+      return false;
+    }
+  }
+
+  // ========================================
   // ENTRADAS: ABRIR Y CERRAR MODAL
   // ========================================
 
-  function abrirEntrada() {
+  async function abrirEntrada() {
+    if (!puedeVerMovimientos()) return;
+
     if (!materiales.length) {
       mostrarMensaje(
         mensajeMovimientos,
         "Primero debés registrar un material.",
-        "mensaje-error"
+        "mensaje-error",
       );
       return;
     }
@@ -1540,30 +1658,36 @@ document.addEventListener("DOMContentLoaded", () => {
     formEntrada?.reset();
 
     actualizarSelectMateriales();
+
+    // Cargar las obras antes de mostrar el formulario.
+    const obrasCargadas = await cargarObrasDisponibles();
+
+    if (!obrasCargadas) return;
+
+    // La opción inicial corresponde al inventario general.
+    if (obraEntrada) {
+      obraEntrada.value = "";
+    }
+
     abrirModal(modalEntrada);
   }
 
   function cerrarEntrada() {
     cerrarModal(modalEntrada);
     formEntrada?.reset();
+
+    if (obraEntrada) {
+      obraEntrada.value = "";
+    }
   }
 
-  $("btnRegistrarEntrada")?.addEventListener(
-    "click",
-    abrirEntrada
-  );
+  $("btnRegistrarEntrada")?.addEventListener("click", abrirEntrada);
 
-  $("cerrarModalEntrada")?.addEventListener(
-    "click",
-    cerrarEntrada
-  );
+  $("cerrarModalEntrada")?.addEventListener("click", cerrarEntrada);
 
-  $("cancelarEntrada")?.addEventListener(
-    "click",
-    cerrarEntrada
-  );
+  $("cancelarEntrada")?.addEventListener("click", cerrarEntrada);
 
-  modalEntrada?.addEventListener("click", evento => {
+  modalEntrada?.addEventListener("click", (evento) => {
     if (evento.target === modalEntrada) {
       cerrarEntrada();
     }
@@ -1573,18 +1697,33 @@ document.addEventListener("DOMContentLoaded", () => {
   // ENTRADAS: REGISTRAR
   // ========================================
 
-  formEntrada?.addEventListener("submit", async evento => {
+  formEntrada?.addEventListener("submit", async (evento) => {
     evento.preventDefault();
+
+    if (!puedeVerMovimientos()) return;
 
     const id_material = Number($("materialEntrada").value);
     const cantidad = Number($("cantidadEntrada").value);
     const motivo = $("motivoEntrada").value.trim();
 
+    // NUEVO: obtener la obra seleccionada.
+    // Si está vacío, se registra como inventario general.
+    const id_obra = obraEntrada?.value ? Number(obraEntrada.value) : null;
+
     if (!Number.isInteger(id_material) || id_material <= 0) {
       mostrarMensaje(
         mensajeMovimientos,
         "Seleccioná un material.",
-        "mensaje-error"
+        "mensaje-error",
+      );
+      return;
+    }
+
+    if (id_obra !== null && (!Number.isInteger(id_obra) || id_obra <= 0)) {
+      mostrarMensaje(
+        mensajeMovimientos,
+        "La obra seleccionada no es válida.",
+        "mensaje-error",
       );
       return;
     }
@@ -1593,7 +1732,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mostrarMensaje(
         mensajeMovimientos,
         "La cantidad debe ser un entero positivo.",
-        "mensaje-error"
+        "mensaje-error",
       );
       return;
     }
@@ -1602,7 +1741,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mostrarMensaje(
         mensajeMovimientos,
         "Ingresá el motivo de la entrada.",
-        "mensaje-error"
+        "mensaje-error",
       );
       return;
     }
@@ -1618,14 +1757,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const resultado = await solicitar(`${API}/movimientos`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           id_material,
+          id_obra,
           tipo_movimiento: "Entrada",
           cantidad,
-          motivo
-        })
+          motivo,
+        }),
       });
 
       cerrarEntrada();
@@ -1633,18 +1773,13 @@ document.addEventListener("DOMContentLoaded", () => {
       mostrarMensaje(
         mensajeMovimientos,
         resultado.mensaje || "Entrada registrada correctamente.",
-        "mensaje-exito"
+        "mensaje-exito",
       );
 
       await cargarMateriales();
       await cargarMovimientos();
-
     } catch (error) {
-      mostrarMensaje(
-        mensajeMovimientos,
-        error.message,
-        "mensaje-error"
-      );
+      mostrarMensaje(mensajeMovimientos, error.message, "mensaje-error");
     } finally {
       boton.disabled = false;
       boton.textContent = "Registrar entrada";
@@ -1655,7 +1790,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // CERRAR MODALES CON ESCAPE
   // ========================================
 
-  document.addEventListener("keydown", evento => {
+  document.addEventListener("keydown", (evento) => {
     if (evento.key !== "Escape") return;
 
     cerrarFormularioMaterial();
@@ -1667,8 +1802,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // INICIAR MÓDULO
   // ========================================
 
-  cargarMateriales();
-  cargarSolicitudes();
-  cargarMovimientos();
+  // Primero verificamos el rol.
+  // Después cargamos solamente los módulos permitidos.
 
+  const sesionValida = await cargarSesion();
+
+  if (!sesionValida) return;
+
+  await Promise.all([
+    cargarMateriales(),
+    cargarSolicitudes(),
+    puedeVerMovimientos() ? cargarMovimientos() : Promise.resolve(),
+  ]);
 });

@@ -1,6 +1,4 @@
-
 document.addEventListener("DOMContentLoaded", () => {
-
   // ========================================
   // ELEMENTOS
   // ========================================
@@ -21,7 +19,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const tablaUsuarios = document.getElementById("tablaUsuarios");
 
   const btnNuevoUsuario = document.getElementById("btnNuevoUsuario");
-  const btnVolverConfiguracion = document.getElementById("btnVolverConfiguracion");
+  const btnVolverConfiguracion = document.getElementById(
+    "btnVolverConfiguracion",
+  );
 
   let usuarioActual = null;
   let temaOscuro = false;
@@ -34,20 +34,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const roles = {
       1: "Gerente",
       2: "Jefe de Obra",
-      3: "Encargado de Inventario"
+      3: "Encargado de Inventario",
     };
 
     return roles[Number(idRol)] || "Usuario";
   }
 
   function escaparHTML(valor) {
-    return String(valor ?? "").replace(/[&<>"']/g, caracter => {
+    return String(valor ?? "").replace(/[&<>"']/g, (caracter) => {
       const caracteres = {
         "&": "&amp;",
         "<": "&lt;",
         ">": "&gt;",
         '"': "&quot;",
-        "'": "&#039;"
+        "'": "&#039;",
       };
 
       return caracteres[caracter];
@@ -65,14 +65,273 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ========================================
+  // NOTIFICACIONES
+  // ========================================
+
+  function notificar(mensaje, tipo = "info") {
+    let contenedor = document.getElementById("contenedorNotificaciones");
+
+    if (!contenedor) {
+      contenedor = document.createElement("div");
+      contenedor.id = "contenedorNotificaciones";
+      contenedor.className = "contenedor-notificaciones";
+      document.body.appendChild(contenedor);
+    }
+
+    const iconos = {
+      exito: "fa-circle-check",
+      error: "fa-circle-exclamation",
+      info: "fa-circle-info",
+    };
+
+    const notificacion = document.createElement("div");
+    notificacion.className = `notificacion ${tipo}`;
+
+    notificacion.innerHTML = `
+      <i class="fa-solid ${iconos[tipo] || iconos.info}"></i>
+      <span>${escaparHTML(mensaje)}</span>
+    `;
+
+    contenedor.appendChild(notificacion);
+
+    window.setTimeout(() => {
+      notificacion.remove();
+
+      if (!contenedor.children.length) {
+        contenedor.remove();
+      }
+    }, 4000);
+  }
+
+  // ========================================
+  // MODALES GENERALES
+  // ========================================
+
+  function crearModal(titulo, subtitulo, icono = "fa-gear") {
+    const modal = document.createElement("div");
+
+    modal.className = "modal-sistema";
+    modal.setAttribute("role", "presentation");
+
+    modal.innerHTML = `
+      <section
+        class="modal-contenido"
+        role="dialog"
+        aria-modal="true"
+        aria-label="${escaparHTML(titulo)}"
+      >
+        <div class="modal-encabezado">
+          <div class="modal-titulo-grupo">
+            <div class="modal-icono">
+              <i class="fa-solid ${icono}"></i>
+            </div>
+
+            <div>
+              <h2>${escaparHTML(titulo)}</h2>
+              <p>${escaparHTML(subtitulo)}</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="modal-cerrar"
+            aria-label="Cerrar ventana"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="modal-cuerpo"></div>
+      </section>
+    `;
+
+    document.body.appendChild(modal);
+
+    const cerrar = () => modal.remove();
+
+    modal.querySelector(".modal-cerrar").addEventListener("click", cerrar);
+
+    modal.addEventListener("click", (evento) => {
+      if (evento.target === modal) {
+        cerrar();
+      }
+    });
+
+    return {
+      modal,
+      cuerpo: modal.querySelector(".modal-cuerpo"),
+      cerrar,
+    };
+  }
+
+  function abrirFormulario({
+    titulo,
+    subtitulo,
+    icono,
+    campos,
+    textoBoton = "Guardar",
+    alEnviar,
+  }) {
+    const ventana = crearModal(titulo, subtitulo, icono);
+    const formulario = document.createElement("form");
+
+    formulario.className = "formulario-modal";
+
+    formulario.innerHTML = `
+      ${campos.join("")}
+
+      <div class="modal-acciones">
+        <button
+          type="button"
+          class="btn-modal btn-modal-secundario"
+          data-cancelar
+        >
+          Cancelar
+        </button>
+
+        <button type="submit" class="btn-modal btn-modal-principal">
+          ${escaparHTML(textoBoton)}
+        </button>
+      </div>
+    `;
+
+    ventana.cuerpo.appendChild(formulario);
+
+    formulario
+      .querySelector("[data-cancelar]")
+      .addEventListener("click", ventana.cerrar);
+
+    formulario.addEventListener("submit", async (evento) => {
+      evento.preventDefault();
+
+      if (!formulario.reportValidity()) {
+        return;
+      }
+
+      const botonEnviar = formulario.querySelector('button[type="submit"]');
+
+      botonEnviar.disabled = true;
+      botonEnviar.textContent = "Procesando...";
+
+      try {
+        const datosFormulario = Object.fromEntries(
+          new FormData(formulario).entries(),
+        );
+
+        const resultado = await alEnviar(datosFormulario);
+
+        if (resultado !== false) {
+          ventana.cerrar();
+        }
+      } catch (error) {
+        notificar(
+          error.message || "No se pudo completar la operación.",
+          "error",
+        );
+      } finally {
+        if (botonEnviar.isConnected) {
+          botonEnviar.disabled = false;
+          botonEnviar.textContent = textoBoton;
+        }
+      }
+    });
+
+    const primerCampo = formulario.querySelector("input, select");
+
+    if (primerCampo) {
+      primerCampo.focus();
+    }
+
+    return ventana;
+  }
+
+  function confirmarAccion({
+    titulo,
+    mensaje,
+    textoConfirmar = "Confirmar",
+    peligro = false,
+    icono = "fa-circle-question",
+  }) {
+    return new Promise((resolve) => {
+      const ventana = crearModal(titulo, "", icono);
+
+      ventana.cuerpo.innerHTML = `
+        <p class="confirmacion-mensaje">
+          ${escaparHTML(mensaje)}
+        </p>
+
+        <div class="modal-acciones">
+          <button
+            type="button"
+            class="btn-modal btn-modal-secundario"
+            data-cancelar
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="button"
+            class="btn-modal ${
+              peligro ? "btn-modal-peligro" : "btn-modal-principal"
+            }"
+            data-confirmar
+          >
+            ${escaparHTML(textoConfirmar)}
+          </button>
+        </div>
+      `;
+
+      let resuelto = false;
+
+      function finalizar(valor) {
+        if (resuelto) return;
+
+        resuelto = true;
+        ventana.cerrar();
+        resolve(valor);
+      }
+
+      ventana.cuerpo
+        .querySelector("[data-cancelar]")
+        .addEventListener("click", () => finalizar(false));
+
+      ventana.cuerpo
+        .querySelector("[data-confirmar]")
+        .addEventListener("click", () => finalizar(true));
+
+      ventana.modal.addEventListener("click", (evento) => {
+        if (evento.target === ventana.modal) {
+          finalizar(false);
+        }
+      });
+    });
+  }
+
+  // ========================================
   // CARGAR SESIÓN
   // ========================================
+
+  function actualizarDatosSuperiores() {
+    if (!usuarioActual) return;
+
+    nombreUsuario.textContent = usuarioActual.username || "Usuario";
+
+    rolUsuario.textContent =
+      usuarioActual.nombre_rol || obtenerNombreRol(usuarioActual.id_rol);
+
+    avatarUsuario.textContent = (usuarioActual.username || "U")
+      .charAt(0)
+      .toUpperCase();
+
+    seccionUsuarios.style.display =
+      Number(usuarioActual.id_rol) === 1 ? "flex" : "none";
+  }
 
   async function cargarUsuario() {
     try {
       const respuesta = await fetch("/usuarios/sesion", {
         method: "GET",
-        credentials: "include"
+        credentials: "include",
       });
 
       if (!respuesta.ok) {
@@ -89,36 +348,22 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      nombreUsuario.textContent = usuarioActual.username;
-
-      rolUsuario.textContent =
-        usuarioActual.nombre_rol ||
-        obtenerNombreRol(usuarioActual.id_rol);
-
-      avatarUsuario.textContent =
-        usuarioActual.username.charAt(0).toUpperCase();
-
-      if (Number(usuarioActual.id_rol) === 1) {
-        seccionUsuarios.style.display = "flex";
-      } else {
-        seccionUsuarios.style.display = "none";
-      }
-
+      actualizarDatosSuperiores();
     } catch (error) {
       console.error("Error al cargar el usuario:", error);
-      alert("No se pudo cargar la información del usuario.");
+      notificar("No se pudo cargar la información del usuario.", "error");
     }
   }
 
   // ========================================
-  // MOSTRAR GESTIÓN DE USUARIOS
+  // GESTIÓN DE USUARIOS
   // ========================================
 
-  btnUsuarios.addEventListener("click", async (e) => {
-    e.preventDefault();
+  btnUsuarios.addEventListener("click", async (evento) => {
+    evento.preventDefault();
 
     if (!usuarioActual || Number(usuarioActual.id_rol) !== 1) {
-      alert("No tienes permiso para acceder a esta sección.");
+      notificar("No tienes permiso para acceder a esta sección.", "error");
       return;
     }
 
@@ -127,10 +372,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     await cargarUsuarios();
   });
-
-  // ========================================
-  // VOLVER A CONFIGURACIÓN
-  // ========================================
 
   btnVolverConfiguracion.addEventListener("click", () => {
     panelUsuarios.classList.remove("visible");
@@ -153,13 +394,12 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const respuesta = await fetch("/usuarios", {
         method: "GET",
-        credentials: "include"
+        credentials: "include",
       });
 
       const datos = await procesarRespuesta(respuesta);
 
       mostrarUsuarios(datos.usuarios || []);
-
     } catch (error) {
       console.error("Error al listar usuarios:", error);
 
@@ -178,7 +418,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   function mostrarUsuarios(usuarios) {
-
     if (usuarios.length === 0) {
       tablaUsuarios.innerHTML = `
         <tr>
@@ -190,24 +429,22 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    tablaUsuarios.innerHTML = usuarios.map(usuario => {
+    tablaUsuarios.innerHTML = usuarios
+      .map((usuario) => {
+        const esActivo = usuario.estado === "Activo";
 
-      const esActivo = usuario.estado === "Activo";
-      const esMiCuenta =
-        Number(usuario.id_usuario) === Number(usuarioActual.id_usuario);
+        const esMiCuenta =
+          Number(usuario.id_usuario) === Number(usuarioActual.id_usuario);
 
-      return `
+        return `
         <tr>
-
-          <td>${usuario.id_usuario}</td>
-
+          <td>${escaparHTML(usuario.id_usuario)}</td>
           <td>${escaparHTML(usuario.username)}</td>
-
           <td>${escaparHTML(usuario.email)}</td>
 
           <td>
             ${escaparHTML(
-              usuario.nombre_rol || obtenerNombreRol(usuario.id_rol)
+              usuario.nombre_rol || obtenerNombreRol(usuario.id_rol),
             )}
           </td>
 
@@ -221,12 +458,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
           <td>
             <div class="acciones-usuario">
-
               <button
                 type="button"
                 class="btn-accion btn-editar"
                 data-accion="editar"
-                data-id="${usuario.id_usuario}"
+                data-id="${escaparHTML(usuario.id_usuario)}"
               >
                 <i class="fa-solid fa-pen"></i>
                 Editar
@@ -236,7 +472,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 type="button"
                 class="btn-accion btn-password"
                 data-accion="password"
-                data-id="${usuario.id_usuario}"
+                data-id="${escaparHTML(usuario.id_usuario)}"
               >
                 <i class="fa-solid fa-key"></i>
                 Contraseña
@@ -252,7 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         esActivo ? "btn-desactivar" : "btn-estado"
                       }"
                       data-accion="estado"
-                      data-id="${usuario.id_usuario}"
+                      data-id="${escaparHTML(usuario.id_usuario)}"
                       data-estado="${esActivo ? "Inactivo" : "Activo"}"
                     >
                       <i class="fa-solid ${
@@ -262,269 +498,392 @@ document.addEventListener("DOMContentLoaded", () => {
                     </button>
                   `
               }
-
             </div>
           </td>
-
         </tr>
       `;
-
-    }).join("");
+      })
+      .join("");
   }
 
   // ========================================
   // REGISTRAR USUARIO
   // ========================================
 
-  btnNuevoUsuario.addEventListener("click", async () => {
+  btnNuevoUsuario.addEventListener("click", () => {
+    abrirFormulario({
+      titulo: "Nuevo usuario",
+      subtitulo: "Completa los datos para registrar una cuenta.",
+      icono: "fa-user-plus",
+      textoBoton: "Registrar usuario",
 
-    const username = prompt("Ingrese el nombre de usuario:");
+      campos: [
+        `
+          <div class="campo-modal">
+            <label for="nuevoUsername">Nombre de usuario</label>
+            <input
+              type="text"
+              id="nuevoUsername"
+              name="username"
+              placeholder="Ingrese el nombre de usuario"
+              maxlength="50"
+              autocomplete="username"
+              required
+            >
+          </div>
+        `,
+        `
+          <div class="campo-modal">
+            <label for="nuevoEmail">Correo electrónico</label>
+            <input
+              type="email"
+              id="nuevoEmail"
+              name="email"
+              placeholder="ejemplo@correo.com"
+              maxlength="100"
+              autocomplete="email"
+              required
+            >
+          </div>
+        `,
+        `
+          <div class="campo-modal">
+            <label for="nuevoPassword">Contraseña</label>
+            <input
+              type="password"
+              id="nuevoPassword"
+              name="password"
+              placeholder="Mínimo 8 caracteres"
+              minlength="8"
+              autocomplete="new-password"
+              required
+            >
+            <span class="ayuda-campo">
+              La contraseña debe tener al menos 8 caracteres.
+            </span>
+          </div>
+        `,
+        `
+          <div class="campo-modal">
+            <label for="nuevoRol">Rol del usuario</label>
+            <select id="nuevoRol" name="id_rol" required>
+              <option value="">Seleccione un rol</option>
+              <option value="1">Gerente</option>
+              <option value="2">Jefe de Obra</option>
+              <option value="3">Encargado de Inventario</option>
+            </select>
+          </div>
+        `,
+      ],
 
-    if (username === null) return;
+      alEnviar: async (datos) => {
+        const username = datos.username.trim();
+        const email = datos.email.trim();
+        const password = datos.password;
+        const id_rol = Number(datos.id_rol);
 
-    const email = prompt("Ingrese el correo electrónico:");
+        if (!username || !email || !password.trim()) {
+          throw new Error("Todos los campos son obligatorios.");
+        }
 
-    if (email === null) return;
+        if (password.length < 8) {
+          throw new Error("La contraseña debe tener al menos 8 caracteres.");
+        }
 
-    const password = prompt("Ingrese la contraseña (mínimo 8 caracteres):");
+        if (![1, 2, 3].includes(id_rol)) {
+          throw new Error("El rol seleccionado no es válido.");
+        }
 
-    if (password === null) return;
+        const respuesta = await fetch("/usuarios", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            username,
+            email,
+            password,
+            id_rol,
+          }),
+        });
 
-    const id_rol = prompt(
-      "Seleccione el rol:\n\n" +
-      "1 - Gerente\n" +
-      "2 - Jefe de Obra\n" +
-      "3 - Encargado de Inventario\n\n" +
-      "Ingrese el número del rol:"
-    );
+        const resultado = await procesarRespuesta(respuesta);
 
-    if (id_rol === null) return;
+        notificar(
+          resultado.mensaje || "Usuario creado correctamente.",
+          "exito",
+        );
 
-    if (!username.trim() || !email.trim() || !password.trim()) {
-      alert("Todos los campos son obligatorios.");
-      return;
-    }
-
-    if (password.length < 8) {
-      alert("La contraseña debe tener al menos 8 caracteres.");
-      return;
-    }
-
-    if (![1, 2, 3].includes(Number(id_rol))) {
-      alert("El rol seleccionado no es válido.");
-      return;
-    }
-
-    try {
-      const respuesta = await fetch("/usuarios", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          username: username.trim(),
-          email: email.trim(),
-          password,
-          id_rol: Number(id_rol)
-        })
-      });
-
-      const datos = await procesarRespuesta(respuesta);
-
-      alert(datos.mensaje || "Usuario creado correctamente.");
-
-      await cargarUsuarios();
-
-    } catch (error) {
-      alert(error.message);
-    }
-
+        await cargarUsuarios();
+      },
+    });
   });
 
   // ========================================
   // ACCIONES DE LA TABLA
   // ========================================
 
-  tablaUsuarios.addEventListener("click", async (e) => {
-
-    const boton = e.target.closest("button[data-accion]");
+  tablaUsuarios.addEventListener("click", async (evento) => {
+    const boton = evento.target.closest("button[data-accion]");
 
     if (!boton) return;
 
     const id = boton.dataset.id;
     const accion = boton.dataset.accion;
 
-    if (accion === "editar") {
-      await editarUsuario(id);
-    }
+    boton.disabled = true;
 
-    if (accion === "password") {
-      await cambiarPassword(id);
-    }
+    try {
+      if (accion === "editar") {
+        await editarUsuario(id);
+      }
 
-    if (accion === "estado") {
-      await cambiarEstado(id, boton.dataset.estado);
-    }
+      if (accion === "password") {
+        cambiarPassword(id);
+      }
 
+      if (accion === "estado") {
+        await cambiarEstado(id, boton.dataset.estado);
+      }
+    } catch (error) {
+      notificar(error.message, "error");
+    } finally {
+      if (boton.isConnected) {
+        boton.disabled = false;
+      }
+    }
   });
+
+  // ========================================
+  // OBTENER USUARIO POR ID
+  // ========================================
+
+  async function obtenerUsuario(id) {
+    const respuesta = await fetch("/usuarios", {
+      method: "GET",
+      credentials: "include",
+    });
+
+    const datos = await procesarRespuesta(respuesta);
+
+    return (datos.usuarios || []).find(
+      (usuario) => Number(usuario.id_usuario) === Number(id),
+    );
+  }
 
   // ========================================
   // EDITAR USUARIO
   // ========================================
 
   async function editarUsuario(id) {
-
-    const respuestaActual = await fetch("/usuarios", {
-      method: "GET",
-      credentials: "include"
-    });
-
-    let usuarios;
+    let usuario;
 
     try {
-      const datos = await procesarRespuesta(respuestaActual);
-      usuarios = datos.usuarios || [];
+      usuario = await obtenerUsuario(id);
     } catch (error) {
-      alert(error.message);
+      notificar(error.message, "error");
       return;
     }
-
-    const usuario = usuarios.find(
-      u => Number(u.id_usuario) === Number(id)
-    );
 
     if (!usuario) {
-      alert("No se encontró el usuario.");
+      notificar("No se encontró el usuario.", "error");
       return;
     }
 
-    const username = prompt(
-      "Nombre de usuario:",
-      usuario.username
-    );
+    abrirFormulario({
+      titulo: "Editar usuario",
+      subtitulo: "Modifica los datos de la cuenta seleccionada.",
+      icono: "fa-user-pen",
+      textoBoton: "Guardar cambios",
 
-    if (username === null) return;
+      campos: [
+        `
+          <div class="campo-modal">
+            <label for="editarUsername">Nombre de usuario</label>
+            <input
+              type="text"
+              id="editarUsername"
+              name="username"
+              value="${escaparHTML(usuario.username)}"
+              maxlength="50"
+              autocomplete="username"
+              required
+            >
+          </div>
+        `,
+        `
+          <div class="campo-modal">
+            <label for="editarEmail">Correo electrónico</label>
+            <input
+              type="email"
+              id="editarEmail"
+              name="email"
+              value="${escaparHTML(usuario.email)}"
+              maxlength="100"
+              autocomplete="email"
+              required
+            >
+          </div>
+        `,
+        `
+          <div class="campo-modal">
+            <label for="editarRol">Rol del usuario</label>
+            <select id="editarRol" name="id_rol" required>
+              <option value="1" ${
+                Number(usuario.id_rol) === 1 ? "selected" : ""
+              }>Gerente</option>
 
-    const email = prompt(
-      "Correo electrónico:",
-      usuario.email
-    );
+              <option value="2" ${
+                Number(usuario.id_rol) === 2 ? "selected" : ""
+              }>Jefe de Obra</option>
 
-    if (email === null) return;
+              <option value="3" ${
+                Number(usuario.id_rol) === 3 ? "selected" : ""
+              }>Encargado de Inventario</option>
+            </select>
+          </div>
+        `,
+      ],
 
-    const id_rol = prompt(
-      "Seleccione el rol:\n\n" +
-      "1 - Gerente\n" +
-      "2 - Jefe de Obra\n" +
-      "3 - Encargado de Inventario",
-      usuario.id_rol
-    );
+      alEnviar: async (datos) => {
+        const username = datos.username.trim();
+        const email = datos.email.trim();
+        const id_rol = Number(datos.id_rol);
 
-    if (id_rol === null) return;
+        if (!username || !email) {
+          throw new Error("El nombre de usuario y el correo son obligatorios.");
+        }
 
-    if (!username.trim() || !email.trim()) {
-      alert("El nombre de usuario y el correo son obligatorios.");
-      return;
-    }
+        if (![1, 2, 3].includes(id_rol)) {
+          throw new Error("El rol seleccionado no es válido.");
+        }
 
-    if (![1, 2, 3].includes(Number(id_rol))) {
-      alert("El rol seleccionado no es válido.");
-      return;
-    }
-
-    try {
-      const respuesta = await fetch(`/usuarios/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          username: username.trim(),
-          email: email.trim(),
-          id_rol: Number(id_rol)
-        })
-      });
-
-      const datos = await procesarRespuesta(respuesta);
-
-      alert(datos.mensaje || "Usuario actualizado correctamente.");
-
-      await cargarUsuarios();
-
-      // Actualizar datos superiores si se modificó la propia cuenta.
-      if (Number(id) === Number(usuarioActual.id_usuario)) {
-        const sesion = await fetch("/usuarios/sesion", {
-          credentials: "include"
+        const respuesta = await fetch(`/usuarios/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            username,
+            email,
+            id_rol,
+          }),
         });
 
-        if (sesion.ok) {
-          const datosSesion = await sesion.json();
+        const resultado = await procesarRespuesta(respuesta);
 
-          usuarioActual = datosSesion.usuario;
+        notificar(
+          resultado.mensaje || "Usuario actualizado correctamente.",
+          "exito",
+        );
 
-          nombreUsuario.textContent = usuarioActual.username;
-          rolUsuario.textContent =
-            usuarioActual.nombre_rol ||
-            obtenerNombreRol(usuarioActual.id_rol);
+        await cargarUsuarios();
 
-          avatarUsuario.textContent =
-            usuarioActual.username.charAt(0).toUpperCase();
+        // Actualizar los datos superiores si se editó la propia cuenta.
+        if (Number(id) === Number(usuarioActual.id_usuario)) {
+          const sesion = await fetch("/usuarios/sesion", {
+            credentials: "include",
+          });
 
-          if (Number(usuarioActual.id_rol) !== 1) {
-            window.location.href = "/inicio";
+          if (sesion.ok) {
+            const datosSesion = await sesion.json();
+
+            usuarioActual = datosSesion.usuario;
+
+            actualizarDatosSuperiores();
+
+            if (Number(usuarioActual.id_rol) !== 1) {
+              window.location.href = "/inicio";
+            }
           }
         }
-      }
-
-    } catch (error) {
-      alert(error.message);
-    }
-
+      },
+    });
   }
 
   // ========================================
   // CAMBIAR CONTRASEÑA
   // ========================================
 
-  async function cambiarPassword(id) {
+  function cambiarPassword(id) {
+    abrirFormulario({
+      titulo: "Cambiar contraseña",
+      subtitulo: "Establece una nueva contraseña para este usuario.",
+      icono: "fa-key",
+      textoBoton: "Actualizar contraseña",
 
-    const password = prompt(
-      "Ingrese la nueva contraseña (mínimo 8 caracteres):"
-    );
+      campos: [
+        `
+          <div class="campo-modal">
+            <label for="nuevaPassword">Nueva contraseña</label>
+            <input
+              type="password"
+              id="nuevaPassword"
+              name="password"
+              placeholder="Mínimo 8 caracteres"
+              minlength="8"
+              autocomplete="new-password"
+              required
+            >
+          </div>
+        `,
+        `
+          <div class="campo-modal">
+            <label for="confirmarPassword">Confirmar contraseña</label>
+            <input
+              type="password"
+              id="confirmarPassword"
+              name="confirmarPassword"
+              placeholder="Repita la nueva contraseña"
+              minlength="8"
+              autocomplete="new-password"
+              required
+            >
+          </div>
+        `,
+      ],
 
-    if (password === null) return;
+      alEnviar: async (datos) => {
+        if (datos.password.length < 8) {
+          throw new Error("La contraseña debe tener al menos 8 caracteres.");
+        }
 
-    if (password.length < 8) {
-      alert("La contraseña debe tener al menos 8 caracteres.");
-      return;
-    }
+        if (datos.password !== datos.confirmarPassword) {
+          throw new Error("Las contraseñas no coinciden.");
+        }
 
-    const confirmar = confirm(
-      "¿Deseas cambiar la contraseña de este usuario?"
-    );
+        const confirmar = await confirmarAccion({
+          titulo: "Confirmar cambio",
+          mensaje: "¿Deseas cambiar la contraseña de este usuario?",
+          textoConfirmar: "Cambiar contraseña",
+          icono: "fa-key",
+        });
 
-    if (!confirmar) return;
+        if (!confirmar) {
+          return false;
+        }
 
-    try {
-      const respuesta = await fetch(`/usuarios/${id}/password`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify({ password })
-      });
+        const respuesta = await fetch(`/usuarios/${id}/password`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            password: datos.password,
+          }),
+        });
 
-      const datos = await procesarRespuesta(respuesta);
+        const resultado = await procesarRespuesta(respuesta);
 
-      alert(datos.mensaje || "Contraseña actualizada correctamente.");
-
-    } catch (error) {
-      alert(error.message);
-    }
-
+        notificar(
+          resultado.mensaje || "Contraseña actualizada correctamente.",
+          "exito",
+        );
+      },
+    });
   }
 
   // ========================================
@@ -532,70 +891,61 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   async function cambiarEstado(id, estado) {
-
     const accion = estado === "Activo" ? "activar" : "desactivar";
 
-    const confirmar = confirm(
-      `¿Deseas ${accion} este usuario?`
-    );
+    const confirmar = await confirmarAccion({
+      titulo: estado === "Activo" ? "Activar usuario" : "Desactivar usuario",
+      mensaje: `¿Deseas ${accion} este usuario?`,
+      textoConfirmar: estado === "Activo" ? "Activar" : "Desactivar",
+      peligro: estado !== "Activo",
+      icono: estado === "Activo" ? "fa-user-check" : "fa-user-slash",
+    });
 
     if (!confirmar) return;
 
-    try {
-      const respuesta = await fetch(`/usuarios/${id}/estado`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify({ estado })
-      });
+    const respuesta = await fetch(`/usuarios/${id}/estado`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ estado }),
+    });
 
-      const datos = await procesarRespuesta(respuesta);
+    const resultado = await procesarRespuesta(respuesta);
 
-      alert(datos.mensaje || "Estado actualizado correctamente.");
+    notificar(
+      resultado.mensaje || "Estado actualizado correctamente.",
+      "exito",
+    );
 
-      await cargarUsuarios();
-
-    } catch (error) {
-      alert(error.message);
-    }
-
+    await cargarUsuarios();
   }
 
- 
   // ========================================
   // MI CUENTA
   // ========================================
 
   btnMiCuenta.addEventListener("click", () => {
-
     if (!usuarioActual) return;
 
-    // Evitar abrir dos ventanas al mismo tiempo
     if (document.getElementById("modalMiCuenta")) return;
 
     const modal = document.createElement("div");
-
     modal.id = "modalMiCuenta";
+    modal.className = "modal-sistema";
 
     const username = escaparHTML(usuarioActual.username);
-    const email = escaparHTML(
-      usuarioActual.email || "No registrado"
-    );
+    const email = escaparHTML(usuarioActual.email || "No registrado");
 
     const rol = escaparHTML(
-      usuarioActual.nombre_rol ||
-      obtenerNombreRol(usuarioActual.id_rol)
+      usuarioActual.nombre_rol || obtenerNombreRol(usuarioActual.id_rol),
     );
 
-    const estado = escaparHTML(
-      usuarioActual.estado || "Activo"
-    );
+    const estado = escaparHTML(usuarioActual.estado || "Activo");
 
     modal.innerHTML = `
-      <div class="modal-cuenta-contenido">
-
+      <div class="modal-cuenta-contenido" role="dialog" aria-modal="true">
         <div class="modal-cuenta-avatar">
           <i class="fa-solid fa-user"></i>
         </div>
@@ -607,7 +957,6 @@ document.addEventListener("DOMContentLoaded", () => {
         </p>
 
         <div class="modal-cuenta-detalles">
-
           <div>
             <i class="fa-solid fa-user"></i>
             <span>Usuario</span>
@@ -631,209 +980,147 @@ document.addEventListener("DOMContentLoaded", () => {
             <span>Estado</span>
             <strong>${estado}</strong>
           </div>
-
         </div>
 
         <button type="button" id="cerrarModalMiCuenta">
           Cerrar
         </button>
-
       </div>
     `;
 
     document.body.appendChild(modal);
 
-    document.getElementById("cerrarModalMiCuenta")
-      .addEventListener("click", () => {
-        modal.remove();
-      });
+    const cerrar = () => modal.remove();
 
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        modal.remove();
+    modal
+      .querySelector("#cerrarModalMiCuenta")
+      .addEventListener("click", cerrar);
+
+    modal.addEventListener("click", (evento) => {
+      if (evento.target === modal) {
+        cerrar();
       }
     });
-
   });
 
   // ========================================
   // CAMBIAR TEMA
   // ========================================
 
-  function prepararTemaOscuro() {
-
-    if (document.getElementById("estilosTemaOscuro")) return;
-
-    const estilos = document.createElement("style");
-
-    estilos.id = "estilosTemaOscuro";
-
-    estilos.textContent = `
-
-      body.tema-oscuro {
-        background-color: #111827;
-        color: #f9fafb;
-      }
-
-      body.tema-oscuro .barra-superior {
-        background-color: #1f2937;
-        border-color: #374151;
-      }
-
-      body.tema-oscuro .dashboard {
-        color: #f9fafb;
-      }
-
-      body.tema-oscuro .encabezado-pagina h1,
-      body.tema-oscuro .config-info h2,
-      body.tema-oscuro .informacion-sistema strong {
-        color: #f9fafb;
-      }
-
-      body.tema-oscuro .encabezado-pagina p,
-      body.tema-oscuro .config-info p,
-      body.tema-oscuro .informacion-sistema p,
-      body.tema-oscuro .informacion-sistema span {
-        color: #cbd5e1;
-      }
-
-      body.tema-oscuro .config-card,
-      body.tema-oscuro .informacion-sistema {
-        background-color: #1f2937;
-        border-color: #374151;
-      }
-
-      body.tema-oscuro .datos-usuario strong {
-        color: #f9fafb;
-      }
-
-      body.tema-oscuro .datos-usuario span {
-        color: #cbd5e1;
-      }
-
-    `;
-
-    document.head.appendChild(estilos);
-  }
-
   btnTema.addEventListener("click", () => {
-
     temaOscuro = !temaOscuro;
 
-    if (temaOscuro) {
+    document.body.classList.toggle("tema-oscuro", temaOscuro);
 
-      prepararTemaOscuro();
-      document.body.classList.add("tema-oscuro");
+    btnTema.innerHTML = temaOscuro
+      ? 'Activar tema claro <i class="fa-solid fa-sun"></i>'
+      : 'Cambiar tema <i class="fa-solid fa-arrow-right"></i>';
 
-      btnTema.innerHTML =
-        'Activar tema claro <i class="fa-solid fa-sun"></i>';
-
-    } else {
-
-      document.body.classList.remove("tema-oscuro");
-
-      btnTema.innerHTML =
-        'Cambiar tema <i class="fa-solid fa-arrow-right"></i>';
-
-    }
-
+    notificar(
+      temaOscuro ? "Tema oscuro activado." : "Tema claro activado.",
+      "exito",
+    );
   });
 
   // ========================================
-// ACERCA DEL SISTEMA
-// ========================================
+  // ACERCA DEL SISTEMA
+  // ========================================
 
-btnAcerca.addEventListener("click", () => {
+  btnAcerca.addEventListener("click", () => {
+    if (document.getElementById("modalAcerca")) return;
 
-  const modal = document.createElement("div");
+    const modal = document.createElement("div");
+    modal.id = "modalAcerca";
+    modal.className = "modal-sistema";
 
-  modal.id = "modalAcerca";
+    modal.innerHTML = `
+      <div class="modal-acerca-contenido" role="dialog" aria-modal="true">
+        <div class="modal-acerca-icono">
+          <i class="fa-solid fa-building"></i>
+        </div>
 
-  modal.innerHTML = `
-    <div class="modal-acerca-contenido">
+        <h2>EnterpriseSys</h2>
 
-      <div class="modal-acerca-icono">
-        <i class="fa-solid fa-building"></i>
+        <p class="modal-acerca-subtitulo">
+          Sistema de gestión empresarial
+        </p>
+
+        <div class="modal-acerca-detalles">
+          <div>
+            <i class="fa-solid fa-code"></i>
+            <span>Versión</span>
+            <strong>1.0</strong>
+          </div>
+
+          <div>
+            <i class="fa-solid fa-users"></i>
+            <span>Módulos</span>
+            <strong>Clientes, Obras e Inventario</strong>
+          </div>
+
+          <div>
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Acceso</span>
+            <strong>Controlado por roles</strong>
+          </div>
+        </div>
+
+        <button type="button" id="cerrarModalAcerca">
+          Cerrar
+        </button>
       </div>
+    `;
 
-      <h2>EnterpriseSys</h2>
+    document.body.appendChild(modal);
 
-      <p class="modal-acerca-subtitulo">
-        Sistema de gestión empresarial
-      </p>
+    const cerrar = () => modal.remove();
 
-      <div class="modal-acerca-detalles">
+    modal.querySelector("#cerrarModalAcerca").addEventListener("click", cerrar);
 
-        <div>
-          <i class="fa-solid fa-code"></i>
-          <span>Versión</span>
-          <strong>1.0</strong>
-        </div>
-
-        <div>
-          <i class="fa-solid fa-users"></i>
-          <span>Módulos</span>
-          <strong>Clientes, Obras e Inventario</strong>
-        </div>
-
-        <div>
-          <i class="fa-solid fa-shield-halved"></i>
-          <span>Acceso</span>
-          <strong>Controlado por roles</strong>
-        </div>
-
-      </div>
-
-      <button type="button" id="cerrarModalAcerca">
-        Cerrar
-      </button>
-
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-
-  document.getElementById("cerrarModalAcerca")
-    .addEventListener("click", () => {
-      modal.remove();
+    modal.addEventListener("click", (evento) => {
+      if (evento.target === modal) {
+        cerrar();
+      }
     });
-
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.remove();
-    }
   });
-
-});
 
   // ========================================
   // CERRAR SESIÓN
   // ========================================
 
   cerrarSesion.addEventListener("click", async () => {
-
-    const confirmar = confirm("¿Deseas cerrar sesión?");
+    const confirmar = await confirmarAccion({
+      titulo: "Cerrar sesión",
+      mensaje: "¿Deseas cerrar tu sesión de EnterpriseSys?",
+      textoConfirmar: "Cerrar sesión",
+      peligro: true,
+      icono: "fa-right-from-bracket",
+    });
 
     if (!confirmar) return;
+
+    cerrarSesion.disabled = true;
 
     try {
       const respuesta = await fetch("/usuarios/logout", {
         method: "POST",
-        credentials: "include"
+        credentials: "include",
       });
 
       if (respuesta.ok) {
         window.location.href = "/login";
-      } else {
-        const datos = await respuesta.json().catch(() => ({}));
-        alert(datos.mensaje || "No se pudo cerrar la sesión.");
+        return;
       }
 
+      const datos = await respuesta.json().catch(() => ({}));
+
+      throw new Error(datos.mensaje || "No se pudo cerrar la sesión.");
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
-      alert("Ocurrió un error al cerrar sesión.");
+      notificar(error.message || "Ocurrió un error al cerrar sesión.", "error");
+    } finally {
+      cerrarSesion.disabled = false;
     }
-
   });
 
   // ========================================
@@ -841,5 +1128,4 @@ btnAcerca.addEventListener("click", () => {
   // ========================================
 
   cargarUsuario();
-
 });

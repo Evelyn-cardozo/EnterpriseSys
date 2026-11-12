@@ -1,4 +1,3 @@
-
 const pool = require("../Database/conexion.js");
 
 // ========================================
@@ -30,7 +29,7 @@ const buscarMaterialPorId = async (id) => {
      FROM materiales
      WHERE id_material = $1
      LIMIT 1`,
-    [id]
+    [id],
   );
 
   return resultado.rows[0];
@@ -44,7 +43,7 @@ const registrarMaterial = async (material) => {
     precio_actual,
     stock_actual = 0,
     stock_minimo = 5,
-    ubicacion_fisica
+    ubicacion_fisica,
   } = material;
 
   const resultado = await pool.query(
@@ -64,8 +63,8 @@ const registrarMaterial = async (material) => {
       precio_actual,
       stock_actual,
       stock_minimo,
-      ubicacion_fisica || null
-    ]
+      ubicacion_fisica || null,
+    ],
   );
 
   return resultado.rows[0];
@@ -78,11 +77,11 @@ const modificarMaterial = async (id, material) => {
     descripcion: "descripcion",
     precio_actual: "precio_actual",
     stock_minimo: "stock_minimo",
-    ubicacion_fisica: "ubicacion_fisica"
+    ubicacion_fisica: "ubicacion_fisica",
   };
 
   const campos = Object.keys(material).filter(
-    campo => camposPermitidos[campo]
+    (campo) => camposPermitidos[campo],
   );
 
   if (campos.length === 0) {
@@ -102,7 +101,7 @@ const modificarMaterial = async (id, material) => {
      SET ${asignaciones.join(", ")}
      WHERE id_material = $${valores.length}
      RETURNING *`,
-    valores
+    valores,
   );
 
   return resultado.rows[0];
@@ -125,6 +124,22 @@ const listarMaterialesStockBajo = async () => {
 };
 
 // ========================================
+// OBRAS DISPONIBLES PARA MOVIMIENTOS
+// ========================================
+
+const listarObrasDisponibles = async () => {
+  const resultado = await pool.query(`
+    SELECT
+      id_obra,
+      nombre_obra
+    FROM obras
+    ORDER BY nombre_obra ASC
+  `);
+
+  return resultado.rows;
+};
+
+// ========================================
 // MOVIMIENTOS DE INVENTARIO
 // ========================================
 
@@ -136,7 +151,7 @@ const registrarMovimiento = async (movimiento) => {
     id_obra,
     tipo_movimiento,
     cantidad,
-    motivo
+    motivo,
   } = movimiento;
 
   const client = await pool.connect();
@@ -158,7 +173,7 @@ const registrarMovimiento = async (movimiento) => {
        FROM materiales
        WHERE id_material = $1
        FOR UPDATE`,
-      [id_material]
+      [id_material],
     );
 
     if (material.rowCount === 0) {
@@ -185,7 +200,7 @@ const registrarMovimiento = async (movimiento) => {
       `UPDATE materiales
        SET stock_actual = $1
        WHERE id_material = $2`,
-      [nuevoStock, id_material]
+      [nuevoStock, id_material],
     );
 
     // Registrar movimiento
@@ -206,14 +221,13 @@ const registrarMovimiento = async (movimiento) => {
         id_obra || null,
         tipo_movimiento,
         cantidadMovimiento,
-        motivo || null
-      ]
+        motivo || null,
+      ],
     );
 
     await client.query("COMMIT");
 
     return resultado.rows[0];
-
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;
@@ -256,12 +270,7 @@ const listarMovimientos = async () => {
 
 // Registrar una solicitud con sus detalles
 const registrarSolicitud = async (solicitud) => {
-  const {
-    id_obra,
-    id_usuario_solicitante,
-    observacion,
-    detalles
-  } = solicitud;
+  const { id_obra, id_usuario_solicitante, observacion, detalles } = solicitud;
 
   const client = await pool.connect();
 
@@ -277,11 +286,7 @@ const registrarSolicitud = async (solicitud) => {
       )
       VALUES ($1, $2, $3)
       RETURNING *`,
-      [
-        id_obra,
-        id_usuario_solicitante,
-        observacion || null
-      ]
+      [id_obra, id_usuario_solicitante, observacion || null],
     );
 
     const nuevaSolicitud = resultadoSolicitud.rows[0];
@@ -298,15 +303,14 @@ const registrarSolicitud = async (solicitud) => {
         [
           nuevaSolicitud.id_solicitud,
           detalle.id_material,
-          detalle.cantidad_solicitada
-        ]
+          detalle.cantidad_solicitada,
+        ],
       );
     }
 
     await client.query("COMMIT");
 
     return nuevaSolicitud;
-
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;
@@ -375,7 +379,7 @@ const buscarSolicitud = async (id) => {
       ON d.id_material = m.id_material
     WHERE s.id_solicitud = $1
     ORDER BY d.id_detalle`,
-    [id]
+    [id],
   );
 
   return resultado.rows;
@@ -393,7 +397,7 @@ const aprobarSolicitud = async (id, detalles) => {
        FROM solicitudes_materiales
        WHERE id_solicitud = $1
        FOR UPDATE`,
-      [id]
+      [id],
     );
 
     if (solicitud.rowCount === 0) {
@@ -409,25 +413,18 @@ const aprobarSolicitud = async (id, detalles) => {
        FROM detalle_solicitud_materiales
        WHERE id_solicitud = $1
        FOR UPDATE`,
-      [id]
+      [id],
     );
 
     if (existentes.rowCount === 0) {
       throw new Error("La solicitud no tiene materiales");
     }
 
-    if (
-      !Array.isArray(detalles) ||
-      detalles.length !== existentes.rowCount
-    ) {
-      throw new Error(
-        "Debés indicar la cantidad aprobada de cada material"
-      );
+    if (!Array.isArray(detalles) || detalles.length !== existentes.rowCount) {
+      throw new Error("Debés indicar la cantidad aprobada de cada material");
     }
 
-    const idsRecibidos = detalles.map(
-      detalle => Number(detalle.id_detalle)
-    );
+    const idsRecibidos = detalles.map((detalle) => Number(detalle.id_detalle));
 
     if (new Set(idsRecibidos).size !== idsRecibidos.length) {
       throw new Error("Hay materiales repetidos en la aprobación");
@@ -437,7 +434,7 @@ const aprobarSolicitud = async (id, detalles) => {
       const idDetalle = Number(detalle.id_detalle);
 
       const original = existentes.rows.find(
-        item => item.id_detalle === idDetalle
+        (item) => item.id_detalle === idDetalle,
       );
 
       const cantidad = Number(detalle.cantidad_aprobada);
@@ -456,7 +453,7 @@ const aprobarSolicitud = async (id, detalles) => {
          SET cantidad_aprobada = $1
          WHERE id_detalle = $2
            AND id_solicitud = $3`,
-        [cantidad, idDetalle, id]
+        [cantidad, idDetalle, id],
       );
     }
 
@@ -464,13 +461,12 @@ const aprobarSolicitud = async (id, detalles) => {
       `UPDATE solicitudes_materiales
        SET estado = 'Aprobada'
        WHERE id_solicitud = $1`,
-      [id]
+      [id],
     );
 
     await client.query("COMMIT");
 
     return true;
-
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;
@@ -487,7 +483,7 @@ const rechazarSolicitud = async (id) => {
      WHERE id_solicitud = $1
        AND estado = 'Pendiente'
      RETURNING *`,
-    [id]
+    [id],
   );
 
   return resultado.rows[0];
@@ -504,9 +500,7 @@ const registrarEntrega = async (id, id_usuario, detalles) => {
       throw new Error("Debés indicar al menos un material para entregar");
     }
 
-    const idsRecibidos = detalles.map(
-      detalle => Number(detalle.id_detalle)
-    );
+    const idsRecibidos = detalles.map((detalle) => Number(detalle.id_detalle));
 
     if (new Set(idsRecibidos).size !== idsRecibidos.length) {
       throw new Error("Hay detalles repetidos en la entrega");
@@ -517,7 +511,7 @@ const registrarEntrega = async (id, id_usuario, detalles) => {
        FROM solicitudes_materiales
        WHERE id_solicitud = $1
        FOR UPDATE`,
-      [id]
+      [id],
     );
 
     if (solicitud.rowCount === 0) {
@@ -535,9 +529,7 @@ const registrarEntrega = async (id, id_usuario, detalles) => {
       const cantidad = Number(detalle.cantidad_entregada);
 
       if (!Number.isInteger(cantidad) || cantidad <= 0) {
-        throw new Error(
-          "La cantidad entregada debe ser un entero positivo"
-        );
+        throw new Error("La cantidad entregada debe ser un entero positivo");
       }
 
       const detalleDB = await client.query(
@@ -546,7 +538,7 @@ const registrarEntrega = async (id, id_usuario, detalles) => {
          WHERE id_detalle = $1
            AND id_solicitud = $2
          FOR UPDATE`,
-        [idDetalle, id]
+        [idDetalle, id],
       );
 
       if (detalleDB.rowCount === 0) {
@@ -556,8 +548,7 @@ const registrarEntrega = async (id, id_usuario, detalles) => {
       const item = detalleDB.rows[0];
 
       const pendiente =
-        Number(item.cantidad_aprobada) -
-        Number(item.cantidad_entregada);
+        Number(item.cantidad_aprobada) - Number(item.cantidad_entregada);
 
       if (cantidad > pendiente) {
         throw new Error("La cantidad supera lo que falta entregar");
@@ -569,16 +560,14 @@ const registrarEntrega = async (id, id_usuario, detalles) => {
          FROM materiales
          WHERE id_material = $1
          FOR UPDATE`,
-        [item.id_material]
+        [item.id_material],
       );
 
       if (
         material.rowCount === 0 ||
         Number(material.rows[0].stock_actual) < cantidad
       ) {
-        throw new Error(
-          "No hay stock suficiente para realizar la entrega"
-        );
+        throw new Error("No hay stock suficiente para realizar la entrega");
       }
 
       // Descontar stock
@@ -586,7 +575,7 @@ const registrarEntrega = async (id, id_usuario, detalles) => {
         `UPDATE materiales
          SET stock_actual = stock_actual - $1
          WHERE id_material = $2`,
-        [cantidad, item.id_material]
+        [cantidad, item.id_material],
       );
 
       // Actualizar cantidad entregada
@@ -594,7 +583,7 @@ const registrarEntrega = async (id, id_usuario, detalles) => {
         `UPDATE detalle_solicitud_materiales
          SET cantidad_entregada = cantidad_entregada + $1
          WHERE id_detalle = $2`,
-        [cantidad, idDetalle]
+        [cantidad, idDetalle],
       );
 
       // Registrar salida en el historial
@@ -613,8 +602,8 @@ const registrarEntrega = async (id, id_usuario, detalles) => {
           id_usuario,
           id_obra,
           cantidad,
-          `Entrega de solicitud ${id}`
-        ]
+          `Entrega de solicitud ${id}`,
+        ],
       );
     }
 
@@ -624,7 +613,7 @@ const registrarEntrega = async (id, id_usuario, detalles) => {
        FROM detalle_solicitud_materiales
        WHERE id_solicitud = $1
          AND cantidad_entregada < cantidad_aprobada`,
-      [id]
+      [id],
     );
 
     if (pendientes.rows[0].cantidad === 0) {
@@ -632,14 +621,13 @@ const registrarEntrega = async (id, id_usuario, detalles) => {
         `UPDATE solicitudes_materiales
          SET estado = 'Entregada'
          WHERE id_solicitud = $1`,
-        [id]
+        [id],
       );
     }
 
     await client.query("COMMIT");
 
     return true;
-
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;
@@ -660,6 +648,7 @@ module.exports = {
   listarMaterialesStockBajo,
   registrarMovimiento,
   listarMovimientos,
+  listarObrasDisponibles,
 
   // Solicitudes de materiales
   registrarSolicitud,
@@ -667,5 +656,5 @@ module.exports = {
   buscarSolicitud,
   aprobarSolicitud,
   rechazarSolicitud,
-  registrarEntrega
+  registrarEntrega,
 };

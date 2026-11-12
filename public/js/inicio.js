@@ -1,6 +1,4 @@
-
 document.addEventListener("DOMContentLoaded", () => {
-
   // ========================================
   // ELEMENTOS DEL DOM
   // ========================================
@@ -13,32 +11,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const tituloBienvenida = document.getElementById("tituloBienvenida");
   const textoResumen = document.getElementById("textoResumen");
   const descripcionBienvenida = document.getElementById(
-    "descripcionBienvenida"
+    "descripcionBienvenida",
   );
 
-  const contenedorTarjetas = document.getElementById(
-    "contenedorTarjetas"
-  );
+  const contenedorTarjetas = document.getElementById("contenedorTarjetas");
 
-  const listaActividades = document.getElementById(
-    "listaActividades"
-  );
+  const listaActividades = document.getElementById("listaActividades");
 
-  const tituloActividades = document.getElementById(
-    "tituloActividades"
-  );
+  const tituloActividades = document.getElementById("tituloActividades");
 
-  const seccionAlertas = document.getElementById(
-    "seccionAlertas"
-  );
+  const seccionAlertas = document.getElementById("seccionAlertas");
 
-  const listaAlertas = document.getElementById(
-    "listaAlertas"
-  );
+  const listaAlertas = document.getElementById("listaAlertas");
 
-  const cantidadAlertas = document.getElementById(
-    "cantidadAlertas"
-  );
+  const cantidadAlertas = document.getElementById("cantidadAlertas");
 
   // ========================================
   // MOSTRAR FECHA ACTUAL
@@ -67,7 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const obtenerNombreRol = (idRol, nombre) => {
-
     const roles = {
       1: "Gerente",
       2: "Jefe de Obra",
@@ -88,12 +73,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   const mostrarUsuario = (usuario) => {
-
     const username = usuario.username || "Usuario";
-    const rol = obtenerNombreRol(
-      usuario.id_rol,
-      usuario.nombre_rol
-    );
+    const rol = obtenerNombreRol(usuario.id_rol, usuario.nombre_rol);
 
     if (nombreUsuario) {
       nombreUsuario.textContent = username;
@@ -104,14 +85,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (avatarUsuario) {
-      avatarUsuario.textContent = username
-        .charAt(0)
-        .toUpperCase();
+      avatarUsuario.textContent = username.charAt(0).toUpperCase();
     }
 
     if (tituloBienvenida) {
-      tituloBienvenida.textContent =
-        `¡BIENVENIDO DE NUEVO, ${username.toUpperCase()}!`;
+      tituloBienvenida.textContent = `¡BIENVENIDO DE NUEVO, ${username.toUpperCase()}!`;
     }
 
     if (textoResumen) {
@@ -119,7 +97,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (descripcionBienvenida) {
-
       const descripciones = {
         1: "Aquí puedes consultar el estado general de EnterpriseSys.",
         2: "Aquí puedes consultar tus solicitudes de materiales y su estado.",
@@ -137,15 +114,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Mostrar únicamente los elementos correspondientes al rol.
     document.querySelectorAll("[data-roles]").forEach((elemento) => {
+      const rolesPermitidos = elemento.dataset.roles.split(",").map(Number);
 
-      const rolesPermitidos = elemento.dataset.roles
-        .split(",")
-        .map(Number);
-
-      elemento.style.display = rolesPermitidos.includes(
-        Number(usuario.id_rol)
-      ) ? "" : "none";
-
+      elemento.style.display = rolesPermitidos.includes(Number(usuario.id_rol))
+        ? ""
+        : "none";
     });
   };
 
@@ -154,7 +127,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   const crearTarjeta = (numero, titulo, enlace, textoEnlace, icono, clase) => {
-
     return `
       <div class="tarjeta">
 
@@ -187,7 +159,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   const mostrarPanelGerente = (resumen) => {
-
     contenedorTarjetas.innerHTML = `
 
       ${crearTarjeta(
@@ -196,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "/clientes-pagina",
         "Ver clientes",
         "fa-solid fa-users",
-        "clientes"
+        "clientes",
       )}
 
       ${crearTarjeta(
@@ -205,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "/obras-pagina",
         "Ver obras",
         "fa-solid fa-helmet-safety",
-        "obras"
+        "obras",
       )}
 
       ${crearTarjeta(
@@ -214,7 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "/inventario-pagina",
         "Ver inventario",
         "fa-solid fa-box",
-        "inventario"
+        "inventario",
       )}
 
       ${crearTarjeta(
@@ -223,7 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "/inventario-pagina",
         "Ver inventario",
         "fa-solid fa-triangle-exclamation",
-        "inventario"
+        "inventario",
       )}
 
       ${crearTarjeta(
@@ -232,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "/inventario-pagina",
         "Ver solicitudes",
         "fa-solid fa-clipboard-list",
-        "obras"
+        "obras",
       )}
 
     `;
@@ -243,7 +214,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   const mostrarPanelJefe = (resumen) => {
-
     contenedorTarjetas.innerHTML = `
 
       ${crearTarjeta(
@@ -252,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "/inventario-pagina",
         "Ver solicitudes",
         "fa-solid fa-clipboard-list",
-        "obras"
+        "obras",
       )}
 
       ${crearTarjeta(
@@ -261,7 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "/inventario-pagina",
         "Ver solicitudes",
         "fa-solid fa-clock",
-        "inventario"
+        "inventario",
       )}
 
       ${crearTarjeta(
@@ -270,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "/inventario-pagina",
         "Ver solicitudes",
         "fa-solid fa-circle-check",
-        "clientes"
+        "clientes",
       )}
 
       ${crearTarjeta(
@@ -279,7 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "/inventario-pagina",
         "Ver solicitudes",
         "fa-solid fa-circle-xmark",
-        "inventario"
+        "inventario",
       )}
 
       ${crearTarjeta(
@@ -288,7 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "/inventario-pagina",
         "Ver solicitudes",
         "fa-solid fa-truck",
-        "obras"
+        "obras",
       )}
 
     `;
@@ -302,7 +272,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   const mostrarPanelInventario = (resumen) => {
-
     contenedorTarjetas.innerHTML = `
 
       ${crearTarjeta(
@@ -311,7 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "/inventario-pagina",
         "Ver inventario",
         "fa-solid fa-boxes-stacked",
-        "inventario"
+        "inventario",
       )}
 
       ${crearTarjeta(
@@ -320,7 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "/inventario-pagina",
         "Ver inventario",
         "fa-solid fa-triangle-exclamation",
-        "obras"
+        "obras",
       )}
 
       ${crearTarjeta(
@@ -329,7 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "/inventario-pagina",
         "Ver inventario",
         "fa-solid fa-circle-exclamation",
-        "clientes"
+        "clientes",
       )}
 
       ${crearTarjeta(
@@ -338,7 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "/inventario-pagina",
         "Gestionar solicitudes",
         "fa-solid fa-clipboard-list",
-        "obras"
+        "obras",
       )}
 
     `;
@@ -349,7 +318,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   const mostrarAlertas = (resumen) => {
-
     const stockBajo = obtenerNumero(resumen.stock_bajo);
     const agotados = obtenerNumero(resumen.materiales_agotados);
 
@@ -364,7 +332,6 @@ document.addEventListener("DOMContentLoaded", () => {
     listaAlertas.innerHTML = "";
 
     if (stockBajo === 0) {
-
       listaAlertas.innerHTML = `
         <div class="alerta-item">
           <div class="alerta-icono">
@@ -382,7 +349,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (agotados > 0) {
-
       listaAlertas.innerHTML += `
         <div class="alerta-item">
 
@@ -400,7 +366,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const disponiblesConStockBajo = stockBajo - agotados;
 
     if (disponiblesConStockBajo > 0) {
-
       listaAlertas.innerHTML += `
         <div class="alerta-item">
 
@@ -421,11 +386,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   const mostrarActividades = (actividades) => {
-
     listaActividades.innerHTML = "";
 
     if (!Array.isArray(actividades) || actividades.length === 0) {
-
       listaActividades.innerHTML = `
         <p>No hay actividades registradas todavía.</p>
       `;
@@ -434,7 +397,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     actividades.forEach((actividad) => {
-
       const item = document.createElement("div");
       item.className = "actividad-item";
 
@@ -472,8 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ? ` | Usuario: ${actividad.usuario}`
         : "";
 
-      detalle.textContent =
-        `${actividad.detalle || ""} | ${fecha}${usuario}`;
+      detalle.textContent = `${actividad.detalle || ""} | ${fecha}${usuario}`;
 
       contenido.appendChild(titulo);
       contenido.appendChild(detalle);
@@ -482,7 +443,6 @@ document.addEventListener("DOMContentLoaded", () => {
       item.appendChild(contenido);
 
       listaActividades.appendChild(item);
-
     });
   };
 
@@ -491,13 +451,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========================================
 
   const cargarDatosInicio = async () => {
-
     try {
-
       const respuesta = await fetch("/inicio/datos", {
         method: "GET",
         headers: {
-          "Accept": "application/json",
+          Accept: "application/json",
         },
         credentials: "same-origin",
       });
@@ -528,7 +486,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const idRol = Number(usuario.id_rol);
 
       switch (idRol) {
-
         case 1:
           mostrarPanelGerente(resumen);
           mostrarAlertas(resumen);
@@ -549,9 +506,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Mostrar actividades recientes.
       mostrarActividades(actividades);
-
     } catch (error) {
-
       console.error("Error al cargar el inicio:", error);
 
       contenedorTarjetas.innerHTML = `
@@ -575,11 +530,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const botonCerrarSesion = document.getElementById("cerrarSesion");
 
   if (botonCerrarSesion) {
-
     botonCerrarSesion.addEventListener("click", async () => {
-
       try {
-
         const respuesta = await fetch("/usuarios/logout", {
           method: "POST",
           credentials: "same-origin",
@@ -590,9 +542,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           alert("No se pudo cerrar la sesión. Intentá nuevamente.");
         }
-
       } catch (error) {
-
         console.error("Error al cerrar sesión:", error);
 
         alert("No se pudo conectar con el servidor.");
@@ -606,5 +556,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
   mostrarFecha();
   cargarDatosInicio();
-
 });

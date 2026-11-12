@@ -1,4 +1,3 @@
-
 const pool = require("../Database/conexion");
 
 // ========================================
@@ -19,7 +18,7 @@ const buscarPorUsername = async (username) => {
     FROM usuarios u
     INNER JOIN roles r ON u.id_rol = r.id_rol
     WHERE u.username = $1`,
-    [username]
+    [username],
   );
 
   return result.rows[0];
@@ -42,7 +41,7 @@ const buscarPorId = async (id) => {
     FROM usuarios u
     INNER JOIN roles r ON u.id_rol = r.id_rol
     WHERE u.id_usuario = $1`,
-    [id]
+    [id],
   );
 
   return result.rows[0];
@@ -63,7 +62,7 @@ const listarUsuarios = async () => {
       r.nombre_rol
     FROM usuarios u
     INNER JOIN roles r ON u.id_rol = r.id_rol
-    ORDER BY u.id_usuario ASC`
+    ORDER BY u.id_usuario ASC`,
   );
 
   return result.rows;
@@ -82,7 +81,7 @@ const crearUsuario = async (datos) => {
        intentos_fallidos, estado)
      VALUES ($1, $2, $3, $4, 0, 'Activo')
      RETURNING id_usuario, username, email, id_rol, estado`,
-    [username, password_hash, email, id_rol]
+    [username, password_hash, email, id_rol],
   );
 
   return result.rows[0];
@@ -102,7 +101,7 @@ const modificarUsuario = async (id, datos) => {
          id_rol = $3
      WHERE id_usuario = $4
      RETURNING id_usuario, username, email, id_rol, estado`,
-    [username, email, id_rol, id]
+    [username, email, id_rol, id],
   );
 
   return result.rows[0];
@@ -119,7 +118,7 @@ const cambiarEstado = async (id, estado) => {
          intentos_fallidos = 0
      WHERE id_usuario = $2
      RETURNING id_usuario, estado`,
-    [estado, id]
+    [estado, id],
   );
 
   return result.rows[0];
@@ -136,7 +135,7 @@ const cambiarPassword = async (id, password_hash) => {
          intentos_fallidos = 0
      WHERE id_usuario = $2
      RETURNING id_usuario`,
-    [password_hash, id]
+    [password_hash, id],
   );
 
   return result.rows[0];
@@ -149,5 +148,5 @@ module.exports = {
   crearUsuario,
   modificarUsuario,
   cambiarEstado,
-  cambiarPassword
+  cambiarPassword,
 };
